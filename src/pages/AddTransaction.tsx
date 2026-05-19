@@ -1,13 +1,22 @@
 import { useForm } from "react-hook-form";
 import { supabase } from "../lib/supabase";
 import type { Transaction } from "../types/database";
+import Button from "../components/ui/button";
 
 export default function AddTransaction() {
   const { register, handleSubmit, reset } = useForm<Transaction>();
 
   async function onSubmit(data: Transaction) {
-    const { error } = await supabase.from("transactions").insert([data]);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
+    const { error } = await supabase.from("transactions").insert([
+      {
+        ...data,
+        user_id: user?.id,
+      },
+    ]);
     if (error) {
       alert(error.message);
       return;
@@ -76,7 +85,7 @@ export default function AddTransaction() {
           className="w-full border p-2 rounded"
         />
 
-        <button className="w-full bg-black text-white p-2 rounded">Save</button>
+        <Button className="w-full bg-black text-white p-2 rounded">Save</Button>
       </form>
     </div>
   );
