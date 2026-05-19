@@ -42,12 +42,16 @@ export default function Select({
         {...props}
         disabled={disabled}
         onChange={handleChange}
-        className={`w-full rounded-sm border bg-white px-3 py-2 outline-none transition focus:ring-2 focus:ring-black hover:cursor-pointer ${disabled ? "bg-gray-100 opacity-70" : ""} ${error ? "border-red-500" : "border-gray-300"} ${selectClassName}`}
+        className={`w-full rounded-sm border bg-white px-3 py-2 capitalize outline-none transition focus:ring-2 focus:ring-black hover:cursor-pointer ${disabled ? "bg-gray-100 opacity-70" : ""} ${error ? "border-red-500" : "border-gray-300"} ${selectClassName}`}
       >
         {placeholder && <option value="">{placeholder}</option>}
 
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option
+            key={option.value}
+            value={option.value}
+            className="capitalize"
+          >
             {option.label}
           </option>
         ))}

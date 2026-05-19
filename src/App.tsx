@@ -7,9 +7,10 @@ import { supabase } from "./lib/supabase";
 import AppLayout from "./layouts/AppLayout";
 
 import Login from "./pages/Login";
-import AddTransaction from "./pages/AddTransaction";
+// import AddTransaction from "./pages/AddTransaction";
 import Rides from "./pages/Rides";
 import FuelPage from "./pages/Fuel";
+import TransactionsPage from "./pages/Transactions";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -37,7 +38,7 @@ export default function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/add-transaction" element={<AddTransaction />} />
+        <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/" element={<div>Dashboard</div>} />
         <Route path="/rides" element={<Rides />} />
         <Route path="/fuel" element={<FuelPage />} />
