@@ -9,7 +9,7 @@ import Modal from "../components/modal";
 import { useToast } from "../components/toast";
 import ConfirmationModal from "../components/confirmation";
 
-interface FuelEntry {
+export interface FuelEntry {
   id: string;
   created_at: string;
   fuel_date: string;

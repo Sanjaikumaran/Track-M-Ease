@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Rides from "./pages/Rides";
 import FuelPage from "./pages/Fuel";
 import TransactionsPage from "./pages/Transactions";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -38,7 +39,7 @@ export default function App() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/transactions" element={<TransactionsPage />} />
-        <Route path="/" element={<div>Dashboard</div>} />
+        <Route path="/" element={<Dashboard />} />
         <Route path="/rides" element={<Rides />} />
         <Route path="/fuel" element={<FuelPage />} />
         <Route path="/history" element={<div>History</div>} />

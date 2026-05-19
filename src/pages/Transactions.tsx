@@ -20,7 +20,7 @@ import ComboBoxInput from "../components/ui/combobox";
 import ConfirmationModal from "../components/confirmation";
 import { useToast } from "../components/toast";
 
-interface Transaction {
+export interface Transaction {
   id: string;
   created_at: string;
   transaction_date: string;
