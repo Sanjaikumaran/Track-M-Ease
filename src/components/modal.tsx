@@ -6,6 +6,7 @@ type ModalAction = {
   onClick?: () => void;
   variant?: "primary" | "secondary" | "danger";
   type?: "button" | "submit";
+  className?: string;
   disabled?: boolean;
 };
 
@@ -79,6 +80,7 @@ export default function Modal({
                   action.onClick?.();
                 }}
                 variant={action.variant || "primary"}
+                className={action.className}
               >
                 {action.label}
               </Button>

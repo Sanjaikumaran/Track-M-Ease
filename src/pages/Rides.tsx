@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import Input from "../components/ui/input";
 import Select from "../components/ui/select";
 import Textarea from "../components/ui/textarea";
 import Modal from "../components/modal";
 import Button from "../components/ui/button";
-import { Filter, X } from "lucide-react";
+import { Bike, Filter, X } from "lucide-react";
+import { useToast } from "../components/toast";
+import ConfirmationModal from "../components/confirmation";
 
 interface RideEntry {
   id: string;
@@ -48,10 +50,16 @@ const initialForm: RideForm = {
 };
 
 export default function Rides() {
+  const toast = useToast();
   const [rides, setRides] = useState<RideEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [editingRide, setEditingRide] = useState<RideEntry | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedRideId, setSelectedRideId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [filters, setFilters] = useState({
     shift: "all",
@@ -78,8 +86,14 @@ export default function Rides() {
     maxEarning: "",
   });
 
+  const fetchRef = useRef(false);
   useEffect(() => {
+    if (fetchRef.current) {
+      return;
+    }
+    fetchRef.current = true;
     fetchRides();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchRides() {
@@ -96,11 +110,12 @@ export default function Rides() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
       setLoading(false);
       return;
+    } else {
+      toast.success("Ride entries fetched successfully");
     }
-
     setRides((data as RideEntry[]) || []);
     setLoading(false);
   }
@@ -154,6 +169,46 @@ export default function Rides() {
 
     setShowFilters(false);
   }
+
+  function editRideEntry(ride: RideEntry) {
+    setEditingRide(ride);
+
+    setShowEditForm(true);
+  }
+
+  function openDeleteModal(id: string) {
+    setSelectedRideId(id);
+    setShowDeleteModal(true);
+  }
+
+  async function confirmDelete() {
+    if (!selectedRideId) {
+      return;
+    }
+
+    setDeleteLoading(true);
+
+    const { error } = await supabase
+      .from("ride_entries")
+      .delete()
+      .eq("id", selectedRideId);
+
+    setDeleteLoading(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success("Ride deleted");
+
+    setShowDeleteModal(false);
+
+    setSelectedRideId(null);
+
+    fetchRides();
+  }
+
   const filteredRides = useMemo(() => {
     return rides.filter((ride) => {
       const shiftMatch =
@@ -184,6 +239,7 @@ export default function Rides() {
       );
     });
   }, [rides, appliedFilters]);
+
   const summary = useMemo(() => {
     return filteredRides.reduce(
       (acc, ride) => {
@@ -212,7 +268,8 @@ export default function Rides() {
 
   return (
     <>
-      <div className="sticky top-0 z-30 flex items-center justify-between border-b bg-white px-5 py-3.5 shadow-sm">
+      <div className="sticky top-0 z-30 flex items-center gap-2 border-b bg-white px-5 py-3.5 shadow-sm">
+        <Bike size={40} />
         <div>
           <h1 className="text-2xl font-bold">Ride Entries</h1>
           <p className="text-sm text-gray-500">Manage your rides</p>
@@ -228,6 +285,20 @@ export default function Rides() {
             }}
             open={showForm}
             setOpen={setShowForm}
+          />
+        )}
+        {showEditForm && editingRide && (
+          <AddRideForm
+            open={showEditForm}
+            setOpen={setShowEditForm}
+            editData={editingRide}
+            onSuccess={() => {
+              fetchRides();
+
+              setShowEditForm(false);
+
+              setEditingRide(null);
+            }}
           />
         )}
 
@@ -338,11 +409,11 @@ export default function Rides() {
               {filteredRides.map((ride) => (
                 <div
                   key={ride.id}
-                  className="space-y-3 rounded-lg border bg-white p-4"
+                  className="space-y-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition hover:shadow-md"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
-                      <h3 className="font-semibold capitalize">
+                      <h3 className="text-lg font-bold capitalize text-gray-900">
                         {ride.ride_type}
                       </h3>
 
@@ -352,31 +423,84 @@ export default function Rides() {
                     </div>
 
                     <div className="text-right">
-                      <p className="text-lg font-bold">₹{ride.net_profit}</p>
+                      <p className="text-xl font-bold text-emerald-600">
+                        ₹{ride.net_profit}
+                      </p>
 
-                      <p className="text-xs text-gray-500">Profit</p>
+                      <p className="text-xs text-gray-400">Net Profit</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <p>Earning: ₹{ride.earning}</p>
-                    <p>Commission: ₹{ride.commission}</p>
-                    <p>Extra: ₹{ride.extra_amount}</p>
-                    <p>KM: {ride.distance || 0}</p>
+                  <div className="grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-3 text-sm">
+                    <div>
+                      <p className="text-xs text-gray-400">Date</p>
+
+                      <p className="font-medium text-gray-700">
+                        {ride.ride_date}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-400">Distance</p>
+
+                      <p className="font-medium text-gray-700">
+                        {ride.distance || 0} KM
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-400">Earning</p>
+
+                      <p className="font-medium text-gray-700">
+                        ₹{ride.earning}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-400">Commission</p>
+
+                      <p className="font-medium text-gray-700">
+                        ₹{ride.commission}
+                      </p>
+                    </div>
+
+                    <div className="col-span-2">
+                      <p className="text-xs text-gray-400">Extra Amount</p>
+
+                      <p className="font-semibold text-indigo-600">
+                        ₹{ride.extra_amount}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{ride.ride_date}</span>
-
-                    <span>
-                      {ride.start_km || 0} → {ride.end_km || 0}
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
+                      {ride.start_km || 0} → {ride.end_km || 0} KM
                     </span>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => editRideEntry(ride)}
+                        className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600 transition hover:cursor-pointer hover:bg-blue-100"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => openDeleteModal(ride.id)}
+                        className="rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:cursor-pointer hover:bg-red-100"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
 
                   {ride.remarks && (
-                    <p className="border-t pt-2 text-sm text-gray-600">
-                      {ride.remarks}
-                    </p>
+                    <div className="border-t border-gray-100 pt-3">
+                      <p className="text-sm leading-relaxed text-gray-600">
+                        {ride.remarks}
+                      </p>
+                    </div>
                   )}
                 </div>
               ))}
@@ -384,6 +508,16 @@ export default function Rides() {
           </div>
         </div>
       </div>
+      <ConfirmationModal
+        open={showDeleteModal}
+        title="Delete Ride"
+        message="Are you sure you want to delete this ride entry?"
+        confirmText="Delete"
+        confirmVariant="danger"
+        loading={deleteLoading}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+      />
     </>
   );
 }
@@ -551,6 +685,7 @@ interface AddRideFormProps {
   onSuccess: () => void;
   open: boolean;
   setOpen: (open: boolean) => void;
+  editData?: RideEntry | null;
 }
 
 type RideFormErrors = {
@@ -565,8 +700,23 @@ type RideFormErrors = {
   remarks?: string;
 };
 
-function AddRideForm({ onSuccess, open, setOpen }: AddRideFormProps) {
-  const [form, setForm] = useState<RideForm>(initialForm);
+function AddRideForm({ onSuccess, open, setOpen, editData }: AddRideFormProps) {
+  const toast = useToast();
+  const [form, setForm] = useState<RideForm>(
+    editData
+      ? {
+          ride_date: editData.ride_date,
+          shift: editData.shift,
+          ride_type: editData.ride_type,
+          earning: editData.earning,
+          commission: editData.commission,
+          extra_amount: editData.extra_amount,
+          start_km: editData.start_km,
+          end_km: editData.end_km,
+          remarks: editData.remarks || "",
+        }
+      : initialForm,
+  );
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<RideFormErrors>({});
 
@@ -642,35 +792,72 @@ function AddRideForm({ onSuccess, open, setOpen }: AddRideFormProps) {
 
   async function onSubmit() {
     const isValid = await validateForm();
+
     if (!isValid) {
       return;
     }
+
     setLoading(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const distance =
+      form.start_km !== null && form.end_km !== null
+        ? form.end_km - form.start_km
+        : null;
 
-    const net_profit = form.earning + form.extra_amount - form.commission;
-    console.log({ ...form, user_id: user?.id, net_profit });
-    const { error } = await supabase
-      .from("ride_entries")
-      .insert([{ ...form, user_id: user?.id }]);
-    setLoading(false);
-    if (error) {
-      alert(error.message);
+    const net_profit =
+      Number(form.earning) +
+      Number(form.extra_amount) -
+      Number(form.commission);
 
-      return;
+    const payload = {
+      ...form,
+      distance,
+      net_profit,
+    };
+
+    let error;
+
+    if (editData) {
+      const response = await supabase
+        .from("ride_entries")
+        .update(payload)
+        .eq("id", editData.id);
+
+      error = response.error;
+    } else {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const response = await supabase.from("ride_entries").insert([
+        {
+          ...payload,
+          user_id: user?.id,
+        },
+      ]);
+
+      error = response.error;
     }
 
-    alert("Ride added");
+    setLoading(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    } else {
+      toast.success(
+        `Ride entry ${editData ? "updated" : "added"} successfully`,
+      );
+    }
+
     setForm(initialForm);
+
     onSuccess();
   }
   return (
     <Modal
       open={open}
-      title="Add Ride"
+      title={editData ? "Edit Ride" : "Add Ride"}
       onClose={() => setOpen(false)}
       actions={[
         {
@@ -679,7 +866,7 @@ function AddRideForm({ onSuccess, open, setOpen }: AddRideFormProps) {
           onClick: () => setOpen(false),
         },
         {
-          label: "Add Ride",
+          label: editData ? "Update Ride" : "Add Ride",
           type: "submit",
           disabled: loading,
           onClick: onSubmit,
