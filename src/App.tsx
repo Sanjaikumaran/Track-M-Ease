@@ -7,7 +7,6 @@ import { supabase } from "./lib/supabase";
 import AppLayout from "./layouts/AppLayout";
 
 import Login from "./pages/Login";
-// import AddTransaction from "./pages/AddTransaction";
 import Rides from "./pages/Rides";
 import FuelPage from "./pages/Fuel";
 import TransactionsPage from "./pages/Transactions";
