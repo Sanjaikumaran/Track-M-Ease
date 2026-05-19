@@ -5,7 +5,7 @@ import Select from "../components/ui/select";
 import Textarea from "../components/ui/textarea";
 import Modal from "../components/modal";
 import Button from "../components/ui/button";
-import { Bike, Filter, X } from "lucide-react";
+import { Filter, X } from "lucide-react";
 import { useToast } from "../components/toast";
 import ConfirmationModal from "../components/confirmation";
 
@@ -268,14 +268,6 @@ export default function Rides() {
 
   return (
     <>
-      <div className="sticky top-0 z-30 flex items-center gap-2 border-b bg-white px-5 py-3.5 shadow-sm">
-        <Bike size={40} />
-        <div>
-          <h1 className="text-2xl font-bold">Ride Entries</h1>
-          <p className="text-sm text-gray-500">Manage your rides</p>
-        </div>
-      </div>
-
       <div className="space-y-4 p-4">
         {showForm && (
           <AddRideForm

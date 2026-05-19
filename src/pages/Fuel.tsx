@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Filter, Fuel, Plus, X } from "lucide-react";
+import { Filter, Plus, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 import Button from "../components/ui/button";
@@ -385,16 +385,6 @@ export default function FuelPage() {
 
   return (
     <>
-      <div className="sticky top-0 z-30 flex items-center gap-2 border-b bg-white px-5 py-3.5 shadow-sm">
-        <Fuel size={40} />
-
-        <div>
-          <h1 className="text-2xl font-bold">Fuel Entries</h1>
-
-          <p className="text-sm text-gray-500">Manage fuel expenses</p>
-        </div>
-      </div>
-
       <div className="space-y-4 p-4">
         <div className="rounded-lg bg-white p-4 shadow">
           <div className="mb-4 flex items-center justify-between">

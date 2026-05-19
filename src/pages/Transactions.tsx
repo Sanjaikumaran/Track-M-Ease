@@ -97,6 +97,8 @@ export default function TransactionsPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   useEffect(() => {
     fetchTransactions();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchTransactions() {
@@ -114,11 +116,11 @@ export default function TransactionsPage() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
       setLoading(false);
       return;
     }
-
+    toast.success("Transactions loaded successfully");
     setTransactions((data as Transaction[]) || []);
 
     setLoading(false);
@@ -396,16 +398,6 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <div className="sticky top-0 z-30 flex items-center gap-2 border-b bg-white px-5 py-3.5 shadow-sm">
-        <Wallet size={38} />
-
-        <div>
-          <h1 className="text-2xl font-bold">Transactions</h1>
-
-          <p className="text-sm text-gray-500">Manage your income & expenses</p>
-        </div>
-      </div>
-
       <div className="space-y-4 p-4">
         <div className="rounded-xl bg-white p-4 shadow">
           <div className="mb-4 flex items-center justify-between">
