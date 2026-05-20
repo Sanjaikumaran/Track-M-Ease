@@ -8,7 +8,7 @@ import {
   X,
 } from "lucide-react";
 
-import { ToastContext, type ToastItem } from "./context";
+import { ToastContext, type ToastItem } from "../../context/toast/context";
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -19,7 +19,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const showToast = useCallback(
     (toast: Omit<ToastItem, "id">) => {
-      const id = crypto.randomUUID();
+      const id =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : Math.random().toString(36).substring(2) + Date.now().toString(36);
 
       setToasts((prev) => [
         ...prev,

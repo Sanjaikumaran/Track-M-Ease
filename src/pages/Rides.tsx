@@ -3,11 +3,11 @@ import { supabase } from "../lib/supabase";
 import Input from "../components/ui/input";
 import Select from "../components/ui/select";
 import Textarea from "../components/ui/textarea";
-import Modal from "../components/modal";
+import Modal from "../components/ui/modal";
 import Button from "../components/ui/button";
 import { Filter, X } from "lucide-react";
-import { useToast } from "../components/toast";
-import ConfirmationModal from "../components/confirmation";
+import { useToast } from "../context/toast";
+import ConfirmationModal from "../components/ui/confirmation";
 
 interface RideEntry {
   id: string;
@@ -791,20 +791,8 @@ function AddRideForm({ onSuccess, open, setOpen, editData }: AddRideFormProps) {
 
     setLoading(true);
 
-    const distance =
-      form.start_km !== null && form.end_km !== null
-        ? form.end_km - form.start_km
-        : null;
-
-    const net_profit =
-      Number(form.earning) +
-      Number(form.extra_amount) -
-      Number(form.commission);
-
     const payload = {
       ...form,
-      distance,
-      net_profit,
     };
 
     let error;

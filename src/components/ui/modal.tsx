@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Button from "./ui/button";
+import Button from "./button";
 
 type ModalAction = {
   label: string;
@@ -8,6 +8,7 @@ type ModalAction = {
   type?: "button" | "submit";
   className?: string;
   disabled?: boolean;
+  loading?: boolean;
 };
 
 type ModalProps = {
@@ -75,7 +76,8 @@ export default function Modal({
               <Button
                 key={index}
                 type={action.type || "button"}
-                disabled={action.disabled}
+                disabled={action.disabled || action.loading}
+                loading={action.loading}
                 onClick={() => {
                   action.onClick?.();
                 }}

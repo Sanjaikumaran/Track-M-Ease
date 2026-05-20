@@ -60,7 +60,11 @@ export default function Input({
           disabled={disabled}
           onChange={handleChange}
           className={`w-full bg-transparent outline-none text-sm placeholder:text-gray-400
-            ${type === "date" ? `cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-70` : ""}`}
+                    ${
+                      ["date", "time"].includes(type)
+                        ? "cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-70"
+                        : ""
+                    }`}
         />
 
         {endIcon && <div className="text-gray-500">{endIcon}</div>}

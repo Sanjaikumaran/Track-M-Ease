@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
-import { useToast } from "../components/toast";
+import { useToast } from "../context/toast";
 import Button from "../components/ui/button";
 import { Receipt } from "lucide-react";
 

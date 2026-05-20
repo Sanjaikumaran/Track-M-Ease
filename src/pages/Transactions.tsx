@@ -15,10 +15,10 @@ import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import Select from "../components/ui/select";
 import Textarea from "../components/ui/textarea";
-import Modal from "../components/modal";
+import Modal from "../components/ui/modal";
 import ComboBoxInput from "../components/ui/combobox";
-import ConfirmationModal from "../components/confirmation";
-import { useToast } from "../components/toast";
+import ConfirmationModal from "../components/ui/confirmation";
+import { useToast } from "../context/toast";
 
 interface Transaction {
   id: string;

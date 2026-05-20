@@ -72,7 +72,7 @@ export default function AppLayout() {
 
   const HeaderIcon = currentPage?.headerIcon;
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-[100dvh] bg-gray-100">
       {/* MOBILE OVERLAY */}
       {sidebarOpen && (
         <div

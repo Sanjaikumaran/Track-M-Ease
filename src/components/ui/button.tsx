@@ -1,3 +1,4 @@
+import { Loader } from "lucide-react";
 import React from "react";
 
 type ButtonVariant =
@@ -69,9 +70,7 @@ export default function Button({
     >
       {!loading && leftIcon}
 
-      {loading && (
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-      )}
+      {loading && <Loader className="h-4 w-4 animate-spin " />}
 
       <span>{loading ? "Loading..." : children}</span>
 
