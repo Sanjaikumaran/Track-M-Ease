@@ -65,15 +65,15 @@ export default function FuelPage() {
   const { confirmDelete } = useDeleteConfirmation();
 
   const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<FuelEntry | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [editingFuel, setEditingFuel] = useState<FuelEntry | null>(null);
   const [appliedFilters, setAppliedFilters] =
     useState<FilterState>(initialFilters);
-  const [errors, setErrors] = useState(initialErrors);
+  const [errors, setErrors] = useState<Record<string, string>>(initialErrors);
 
-  const fetchedRef = useRef(false);
+  const fetchedRef = useRef<boolean>(false);
 
-  async function fetchFuelEntries() {
+  async function fetchFuels() {
     setLoading(true);
 
     try {
@@ -98,7 +98,7 @@ export default function FuelPage() {
   useEffect(() => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
-    fetchFuelEntries();
+    fetchFuels();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -121,7 +121,7 @@ export default function FuelPage() {
 
     const latest = fuelEntries[0];
 
-    if (!editingEntry && latest?.odometer_km) {
+    if (!editingFuel && latest?.odometer_km) {
       if (Number(data.odometer_km) <= Number(latest.odometer_km)) {
         err.odometer_km = "KM must be greater than previous entry";
       }
@@ -133,7 +133,7 @@ export default function FuelPage() {
 
   async function saveFuelEntry(data: FuelEntry) {
     if (!validateForm(data)) return false;
-
+    console.log("Validated data:", data);
     const payload = {
       fuel_date: data.fuel_date,
       fuel_time: data.fuel_time,
@@ -147,8 +147,8 @@ export default function FuelPage() {
     try {
       let error;
 
-      if (editingEntry) {
-        const res = await fuelService.update(editingEntry.id!, payload);
+      if (editingFuel) {
+        const res = await fuelService.update(editingFuel.id!, payload);
         error = res.error;
       } else {
         const res = await fuelService.create(payload);
@@ -161,11 +161,11 @@ export default function FuelPage() {
       }
 
       toast.success(
-        `Fuel entry ${editingEntry ? "updated" : "added"} successfully`,
+        `Fuel entry ${editingFuel ? "updated" : "added"} successfully`,
       );
 
-      setEditingEntry(null);
-      fetchFuelEntries();
+      setEditingFuel(null);
+      fetchFuels();
     } catch (err: unknown) {
       toast.error(`${err || "Save failed"}`);
     }
@@ -186,7 +186,7 @@ export default function FuelPage() {
         }
 
         toast.success("Fuel entry deleted");
-        fetchFuelEntries();
+        fetchFuels();
       },
     });
   }
@@ -291,14 +291,14 @@ export default function FuelPage() {
 
             <GenericFormModal
               config={fuelFormConfig}
-              title={editingEntry ? "Edit Fuel Entry" : "Add Fuel Entry"}
+              title={editingFuel ? "Edit Fuel Entry" : "Add Fuel Entry"}
               initialData={initialForm}
-              editingData={editingEntry || undefined}
+              editingData={editingFuel || undefined}
               errors={errors}
               onSubmit={saveFuelEntry}
-              submitLabel={editingEntry ? "Update" : "Save"}
+              submitLabel={editingFuel ? "Update" : "Save"}
               onClose={() => {
-                setEditingEntry(null);
+                setEditingFuel(null);
                 setErrors(initialErrors);
               }}
             />
@@ -399,7 +399,7 @@ export default function FuelPage() {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setEditingEntry(fuel)}
+                  onClick={() => setEditingFuel(fuel)}
                   className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600 transition hover:cursor-pointer hover:bg-blue-100"
                 >
                   Edit

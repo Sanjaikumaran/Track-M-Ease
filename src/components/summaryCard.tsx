@@ -4,7 +4,15 @@ export type SummaryCardConfig = {
   label: string;
   key: string;
   cardIcon: LucideIcon;
-  color: "green" | "red" | "orange" | "blue" | "indigo" | "purple" | "pink";
+  color:
+    | "green"
+    | "red"
+    | "orange"
+    | "blue"
+    | "indigo"
+    | "purple"
+    | "pink"
+    | "emerald";
   formatter?: (value: string | number) => string;
 };
 
@@ -53,7 +61,15 @@ function SummaryCard({
   title: string;
   value: string;
   icon: LucideIcon;
-  color: "green" | "red" | "orange" | "blue" | "indigo" | "purple" | "pink";
+  color:
+    | "green"
+    | "red"
+    | "orange"
+    | "blue"
+    | "indigo"
+    | "purple"
+    | "pink"
+    | "emerald";
   loading?: boolean;
 }) {
   const Icon = icon;
@@ -66,6 +82,7 @@ function SummaryCard({
     indigo: "bg-indigo-50 text-indigo-700",
     purple: "bg-purple-50 text-purple-700",
     pink: "bg-pink-50 text-pink-700",
+    emerald: "bg-emerald-50 text-emerald-700",
   };
 
   return (
