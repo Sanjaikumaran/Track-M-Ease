@@ -314,6 +314,7 @@ export default function FuelPage() {
             totalTravelledKm: summary.totalTravelledKm,
             averageMileage,
           }}
+          cols={4}
         />
       </div>
 

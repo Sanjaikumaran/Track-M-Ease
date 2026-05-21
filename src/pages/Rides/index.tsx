@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import SupabaseService from "../../lib/supabase";
+import LocalDB from "../../lib/indexDb";
 
 import { useToast } from "../../context/toast";
 import { useDeleteConfirmation } from "../../context/deleteEntry";
@@ -111,9 +112,11 @@ export default function Rides() {
   const [errors, setErrors] = useState<Record<string, string>>(initialErrors);
   const [appliedFilters, setAppliedFilters] =
     useState<FilterState>(initialFilters);
+  const [showDrafts, setShowDrafts] = useState<boolean>(false);
 
   async function fetchRides() {
     setLoading(true);
+    setShowDrafts(false);
 
     try {
       const { data, error } = await rideService.getAll(
@@ -274,6 +277,30 @@ export default function Rides() {
     });
   }
 
+  async function saveAsDraft(ride: RideEntry) {
+    const id =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+    const draft = {
+      ...ride,
+      id,
+      created_at: new Date().toISOString(),
+    };
+
+    await LocalDB.create("rides", draft);
+
+    toast.success("Saved as draft");
+  }
+
+  async function getAllDrafts() {
+    setShowDrafts(true);
+    const drafts = await LocalDB.getAll("rides");
+
+    setRides(drafts);
+  }
+
   const filteredRides = useMemo(() => {
     return rides.filter((ride) => {
       const rideTypeMatch =
@@ -366,11 +393,12 @@ export default function Rides() {
             <GenericFormModal
               config={rideFormConfig}
               title={editingRide ? "Edit Ride Entry" : "Add Ride Entry"}
+              submitLabel={editingRide ? "Update" : "Save"}
               initialData={initialForm}
               editingData={editingRide || undefined}
               errors={errors}
               onSubmit={saveRideEntry}
-              submitLabel={editingRide ? "Update" : "Save"}
+              onDraft={!editingRide ? saveAsDraft : undefined}
               onClose={() => {
                 setEditingRide(null);
                 setErrors(initialErrors);
@@ -390,10 +418,22 @@ export default function Rides() {
             totalRides: summary.totalRides,
             totalKm: summary.totalKm,
           }}
+          cols={3}
         />
       </div>
 
-      <List header="Ride History" items={filteredRides} loading={loading}>
+      <List
+        header="Ride History"
+        items={filteredRides}
+        loading={loading}
+        actions={[
+          {
+            label: showDrafts ? "Show Online Rides" : "Show Drafts",
+            onClick: showDrafts ? fetchRides : getAllDrafts,
+            variant: "outline",
+          },
+        ]}
+      >
         {filteredRides.map((ride) => (
           <div
             key={ride.id}

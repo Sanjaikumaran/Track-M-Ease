@@ -13,7 +13,7 @@ export interface Transaction {
 
   subcategory?: string;
 
-  person?: string;
+  from_to?: string;
 
   payment_method?: string;
 

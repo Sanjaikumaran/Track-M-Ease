@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
-import Button from "./button";
+import Button, { type ButtonVariant } from "./button";
 
 type ModalAction = {
   label: string;
   onClick?: () => void;
-  variant?: "primary" | "secondary" | "danger";
+  variant?: ButtonVariant;
   type?: "button" | "submit";
   className?: string;
   disabled?: boolean;

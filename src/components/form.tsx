@@ -5,7 +5,8 @@ import Modal from "./ui/modal";
 import Input from "./ui/input";
 import Textarea from "./ui/textarea";
 import Select from "./ui/select";
-import Button from "./ui/button";
+import Button, { type ButtonVariant } from "./ui/button";
+import ComboBoxInput from "./ui/combobox";
 
 type BaseFieldConfig = {
   key: string;
@@ -37,29 +38,31 @@ type ToggleFieldType = BaseFieldConfig & {
   inactiveText?: string;
 };
 
+type ComboBoxFieldType = BaseFieldConfig & {
+  type: "combobox";
+  options: string[];
+  placeholder?: string;
+};
+
 export type FormFieldConfig =
   | InputFieldType
   | TextareaFieldType
   | SelectFieldType
-  | ToggleFieldType;
+  | ToggleFieldType
+  | ComboBoxFieldType;
 
 type GenericFormModalProps<T extends object> = {
+  config: FormFieldConfig[];
   title: string;
-
   initialData: T;
   editingData?: T;
-
   errors?: Partial<Record<keyof T, string>>;
-
   onSubmit: (data: T) => Promise<boolean | void>;
-
+  onDraft?: (data: T) => Promise<boolean | void>;
   submitLabel?: string;
-
   triggerLabel?: string;
-
-  config: FormFieldConfig[];
-
   onClose?: () => void;
+  onChange?: (data: T) => void;
 };
 
 function GenericFormModal<T extends object>({
@@ -72,6 +75,8 @@ function GenericFormModal<T extends object>({
   triggerLabel = "Add",
   config,
   onClose,
+  onChange,
+  onDraft,
 }: GenericFormModalProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const [formState, setFormState] = useState<T>(initialData);
@@ -82,6 +87,7 @@ function GenericFormModal<T extends object>({
       ...prev,
       [key]: value,
     }));
+    onChange?.({ ...formState, [key]: value });
   };
 
   const handleClose = () => {
@@ -93,6 +99,15 @@ function GenericFormModal<T extends object>({
   const handleSumbit = async () => {
     setLoading(true);
     const success = await onSubmit(formState);
+    if (success !== false) {
+      setIsOpen(false);
+    }
+    setLoading(false);
+  };
+
+  const handleDraft = async () => {
+    setLoading(true);
+    const success = await onDraft?.(formState);
     if (success !== false) {
       setIsOpen(false);
     }
@@ -124,9 +139,18 @@ function GenericFormModal<T extends object>({
         actions={[
           {
             label: "Cancel",
-            variant: "secondary",
             onClick: handleClose,
+            variant: "outline" as ButtonVariant,
           },
+          ...(onDraft
+            ? [
+                {
+                  label: "Save as Draft",
+                  variant: "secondary" as ButtonVariant,
+                  onClick: handleDraft,
+                },
+              ]
+            : []),
           {
             label: submitLabel,
             onClick: handleSumbit,
@@ -200,6 +224,21 @@ function GenericFormModal<T extends object>({
                   </div>
                 );
 
+              case "combobox":
+                return (
+                  <div key={field.key} className={colSpan}>
+                    <ComboBoxInput
+                      label={field.label}
+                      value={String(value || "")}
+                      placeholder={field.placeholder}
+                      options={field.options}
+                      error={error}
+                      onChange={(val) =>
+                        updateField(field.key as keyof T, val as T[keyof T])
+                      }
+                    />
+                  </div>
+                );
               default:
                 return (
                   <div key={field.key} className={colSpan}>

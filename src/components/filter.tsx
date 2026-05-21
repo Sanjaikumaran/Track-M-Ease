@@ -45,6 +45,8 @@ type GenericFiltersProps<T extends object> = {
   initialFilters: T;
 
   config: FilterFieldConfig[];
+  onClose?: () => void;
+  onChange?: (data: T) => void;
 };
 
 function GenericFilters<T extends object>({
@@ -53,9 +55,11 @@ function GenericFilters<T extends object>({
   setFilters,
   initialFilters,
   config,
+  onChange,
+  onClose,
 }: GenericFiltersProps<T>) {
   const [showFilters, setShowFilters] = useState(false);
-
+  console.log("Filters:", filters);
   const [draftFilters, setDraftFilters] = useState<T>(filters);
 
   const updateFilter = <K extends keyof T>(key: K, value: T[K]) => {
@@ -63,6 +67,7 @@ function GenericFilters<T extends object>({
       ...prev,
       [key]: value,
     }));
+    onChange?.({ ...draftFilters, [key]: value } as T);
   };
 
   return (
@@ -87,7 +92,10 @@ function GenericFilters<T extends object>({
             <h3 className="font-semibold">{title}</h3>
 
             <button
-              onClick={() => setShowFilters(false)}
+              onClick={() => {
+                onClose?.();
+                setShowFilters(false);
+              }}
               className="rounded-md p-1 hover:bg-gray-100 hover:cursor-pointer"
             >
               <X size={18} />
@@ -181,7 +189,7 @@ function GenericFilters<T extends object>({
               variant="secondary"
               onClick={() => {
                 setDraftFilters(initialFilters);
-
+                onClose?.();
                 setFilters(initialFilters);
               }}
             >

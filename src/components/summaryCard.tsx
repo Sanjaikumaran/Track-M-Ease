@@ -20,15 +20,19 @@ type SummaryCardsGridProps<T extends object> = {
   config: SummaryCardConfig[];
   data: T;
   loading?: boolean;
+  cols?: number;
 };
 
 function SummaryCardsGrid<T extends Record<string, string | number>>({
   config,
   data,
   loading = false,
+  cols = 2,
 }: SummaryCardsGridProps<T>) {
   return (
-    <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+    <div
+      className={`grid w-full grid-cols-1 gap-4 sm:grid-cols-${cols} 2xl:grid-cols-${cols}`}
+    >
       {config.map((item) => {
         const rawValue = data[item.key];
 
