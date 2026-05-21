@@ -1,14 +1,10 @@
-// src/lib/db.ts
-
 import Dexie, { type Table } from "dexie";
-
-/* =========================
-   DATABASE
-========================= */
 
 class AppDatabase<T> extends Dexie {
   drafts!: Table<T & { id?: number; updatedAt: string }>;
   transactions!: Table<T & { id?: number; createdAt: string }>;
+  fuels!: Table<T & { id?: number; createdAt: string }>;
+  shifts!: Table<T & { id?: number; createdAt: string }>;
   rides!: Table<T & { id?: number; createdAt: string }>;
 
   constructor() {
@@ -17,6 +13,8 @@ class AppDatabase<T> extends Dexie {
     this.version(1).stores({
       drafts: "++id, updatedAt",
       transactions: "++id, createdAt",
+      fuels: "++id, createdAt",
+      shifts: "++id, createdAt",
       rides: "++id, createdAt",
     });
   }

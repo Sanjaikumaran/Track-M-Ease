@@ -1,8 +1,8 @@
 import { createContext } from "react";
 
-export type ToastType = "success" | "error" | "warning" | "info";
+type ToastType = "success" | "error" | "warning" | "info";
 
-export interface ToastItem {
+interface ToastItem {
   id: string;
   title?: string;
   message: string;
@@ -10,7 +10,7 @@ export interface ToastItem {
   duration?: number;
 }
 
-export interface ToastContextType {
+interface ToastContextType {
   showToast: (toast: Omit<ToastItem, "id">) => void;
 
   success: (message: string, title?: string) => void;
@@ -22,4 +22,7 @@ export interface ToastContextType {
   info: (message: string, title?: string) => void;
 }
 
-export const ToastContext = createContext<ToastContextType | null>(null);
+const ToastContext = createContext<ToastContextType | null>(null);
+
+export { ToastContext };
+export type { ToastItem };

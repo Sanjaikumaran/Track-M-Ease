@@ -1,7 +1,7 @@
 import { Loader } from "lucide-react";
 import React from "react";
 
-export type ButtonVariant =
+type ButtonVariant =
   | "primary"
   | "secondary"
   | "danger"
@@ -22,7 +22,7 @@ type ButtonProps = {
   className?: string;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-export default function Button({
+const Button = ({
   children,
   variant = "primary",
   size = "md",
@@ -33,8 +33,8 @@ export default function Button({
   className = "",
   disabled,
   ...props
-}: ButtonProps) {
-  function getVariantClasses() {
+}: ButtonProps) => {
+  const getVariantClasses = () => {
     switch (variant) {
       case "secondary":
         return `bg-gray-200 text-black hover:bg-gray-300`;
@@ -49,9 +49,9 @@ export default function Button({
       default:
         return `bg-black text-white hover:bg-gray-800`;
     }
-  }
+  };
 
-  function getSizeClasses() {
+  const getSizeClasses = () => {
     switch (size) {
       case "sm":
         return `px-3 py-1.5 text-sm`;
@@ -60,7 +60,7 @@ export default function Button({
       default:
         return `px-4 py-2 text-sm`;
     }
-  }
+  };
 
   return (
     <button
@@ -77,4 +77,7 @@ export default function Button({
       {!loading && rightIcon}
     </button>
   );
-}
+};
+
+export default Button;
+export type { ButtonVariant };

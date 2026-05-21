@@ -30,10 +30,7 @@ type ToggleFieldType = BaseFieldConfig & {
   inactiveText?: string;
 };
 
-export type FilterFieldConfig =
-  | InputFieldType
-  | SelectFieldType
-  | ToggleFieldType;
+type FilterFieldConfig = InputFieldType | SelectFieldType | ToggleFieldType;
 
 type GenericFiltersProps<T extends object> = {
   title?: string;
@@ -49,7 +46,7 @@ type GenericFiltersProps<T extends object> = {
   onChange?: (data: T) => void;
 };
 
-function GenericFilters<T extends object>({
+const GenericFilters = <T extends object>({
   title = "Filters",
   filters,
   setFilters,
@@ -57,7 +54,7 @@ function GenericFilters<T extends object>({
   config,
   onChange,
   onClose,
-}: GenericFiltersProps<T>) {
+}: GenericFiltersProps<T>) => {
   const [showFilters, setShowFilters] = useState(false);
   const [draftFilters, setDraftFilters] = useState<T>(filters);
 
@@ -209,6 +206,7 @@ function GenericFilters<T extends object>({
       )}
     </div>
   );
-}
+};
 
 export default GenericFilters;
+export type { FilterFieldConfig };

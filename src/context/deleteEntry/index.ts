@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { DeleteConfirmationContext } from "./context";
 
-export function useDeleteConfirmation() {
+const useDeleteConfirmation = () => {
   const ctx = useContext(DeleteConfirmationContext);
 
   if (!ctx) {
@@ -11,4 +11,6 @@ export function useDeleteConfirmation() {
   }
 
   return ctx;
-}
+};
+
+export { useDeleteConfirmation };

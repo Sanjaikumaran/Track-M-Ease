@@ -1,18 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import type { Session } from "@supabase/supabase-js";
+
 import { supabase } from "./lib/supabase";
 
 import AppLayout from "./layouts/AppLayout";
 
 import Login from "./pages/Login";
-import Rides from "./pages/Rides";
-import Fuel from "./pages/Fuel";
-import Transactions from "./pages/Transactions";
-import ShiftSessions from "./pages/Shifts";
+import { Loader2 } from "lucide-react";
 
-export default function App() {
+const Transactions = lazy(() => import("./pages/Transactions"));
+const Rides = lazy(() => import("./pages/Rides"));
+const Shifts = lazy(() => import("./pages/Shifts"));
+const Fuels = lazy(() => import("./pages/Fuels"));
+
+const App = () => {
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
@@ -36,36 +39,50 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/transactions" element={<Transactions />} />
-        <Route path="/rides" element={<Rides />} />
-        <Route path="/fuel" element={<Fuel />} />
-        <Route path="/shifts" element={<ShiftSessions />} />
-        <Route
-          path="*"
-          element={
-            <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 text-center">
-              <div className="text-7xl font-extrabold text-gray-300">404</div>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="animate-spin" size={48} />
+        </div>
+      }
+    >
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/transactions" element={<Transactions />} />
 
-              <h1 className="mt-4 text-2xl font-bold text-gray-800">
-                Page Not Found
-              </h1>
+          <Route path="/rides" element={<Rides />} />
 
-              <p className="mt-2 text-sm text-gray-500">
-                The page you are looking for doesn’t exist or has been moved.
-              </p>
+          <Route path="/fuel" element={<Fuels />} />
 
-              <button
-                onClick={() => (window.location.href = "/")}
-                className="mt-6 rounded-lg bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-              >
-                Go Home
-              </button>
-            </div>
-          }
-        />
-      </Route>
-    </Routes>
+          <Route path="/shifts" element={<Shifts />} />
+
+          <Route
+            path="*"
+            element={
+              <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 text-center">
+                <div className="text-7xl font-extrabold text-gray-300">404</div>
+
+                <h1 className="mt-4 text-2xl font-bold text-gray-800">
+                  Page Not Found
+                </h1>
+
+                <p className="mt-2 text-sm text-gray-500">
+                  The page you are looking for doesn’t exist or has been moved.
+                </p>
+
+                <button
+                  onClick={() => (window.location.href = "/")}
+                  className="mt-6 rounded-lg bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+                >
+                  Go Home
+                </button>
+              </div>
+            }
+          />
+        </Route>
+      </Routes>
+    </Suspense>
   );
-}
+};
+
+export default App;

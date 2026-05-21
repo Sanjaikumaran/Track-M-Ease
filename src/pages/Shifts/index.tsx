@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import SupabaseService from "../../lib/supabase";
+import LocalDB from "../../lib/indexDb";
 
 import { useToast } from "../../context/toast";
 import { useDeleteConfirmation } from "../../context/deleteEntry";
@@ -16,9 +17,13 @@ import {
   shiftSummaryConfig,
 } from "./config";
 
-import { getShiftByTime, getTimeDifference } from "../../lib/helpers";
+import {
+  calculateHours,
+  getShiftByTime,
+  getTimeDifference,
+} from "../../lib/helpers";
 
-export interface ShiftSession {
+interface ShiftSession {
   id?: string;
   created_at?: string;
   shift_date: string;
@@ -73,7 +78,7 @@ const initialErrors = {
   remarks: "",
 };
 
-export default function ShiftSessions() {
+const ShiftSessions = () => {
   const shiftService = new SupabaseService<ShiftSession>("shift_sessions");
 
   const toast = useToast();
@@ -83,20 +88,18 @@ export default function ShiftSessions() {
   const fetchedRef = useRef(false);
 
   const [sessions, setSessions] = useState<ShiftSession[]>([]);
-
   const [loading, setLoading] = useState(false);
-
   const [editingSession, setEditingSession] = useState<ShiftSession | null>(
     null,
   );
-
   const [errors, setErrors] = useState<Record<string, string>>(initialErrors);
-
   const [appliedFilters, setAppliedFilters] =
     useState<FilterState>(initialFilters);
+  const [showDrafts, setShowDrafts] = useState(false);
 
-  async function fetchSessions() {
+  const fetchSessions = async () => {
     setLoading(true);
+    setShowDrafts(false);
 
     try {
       const { data, error } = await shiftService.getAll(
@@ -115,7 +118,7 @@ export default function ShiftSessions() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (fetchedRef.current) {
@@ -129,7 +132,7 @@ export default function ShiftSessions() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function validateForm(data: ShiftSession) {
+  const validateForm = (data: ShiftSession) => {
     const newErrors = {
       shift_date: "",
       shift: "",
@@ -167,13 +170,16 @@ export default function ShiftSessions() {
     setErrors(newErrors);
 
     return !Object.values(newErrors).some(Boolean);
-  }
+  };
 
-  async function saveSession(data: ShiftSession) {
+  const saveSession = async (data: ShiftSession) => {
     if (!validateForm(data)) {
       return false;
     }
 
+    if (showDrafts && editingSession) {
+      await LocalDB.remove("shifts", editingSession.id!);
+    }
     const payload = {
       shift_date: data.shift_date,
       shift: data.shift,
@@ -216,9 +222,9 @@ export default function ShiftSessions() {
 
       return false;
     }
-  }
+  };
 
-  async function deleteSession(id: string) {
+  const deleteSession = async (id: string) => {
     await confirmDelete({
       title: "Delete Shift Session",
       message: "Are you sure you want to delete this shift session?",
@@ -237,7 +243,48 @@ export default function ShiftSessions() {
         fetchSessions();
       },
     });
-  }
+  };
+
+  const saveAsDraft = async (shift: ShiftSession) => {
+    const id =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+    const draft = {
+      ...shift,
+      id,
+      created_at: new Date().toISOString(),
+    };
+
+    await LocalDB.create("shifts", draft);
+
+    toast.success("Saved as draft");
+  };
+
+  const getAllDrafts = async () => {
+    setShowDrafts(true);
+    const drafts = await LocalDB.getAll("shifts");
+
+    setSessions(drafts || []);
+  };
+
+  const deleteDraft = async (id: string) => {
+    await confirmDelete({
+      title: "Delete Shift Draft",
+      message: "Are you sure you want to delete this shift draft?",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+      onConfirm: async () => {
+        await LocalDB.remove("shifts", id);
+
+        toast.success("Draft deleted");
+
+        setShowDrafts(false);
+        fetchSessions();
+      },
+    });
+  };
 
   const filteredSessions = useMemo(() => {
     return sessions.filter((session) => {
@@ -263,19 +310,6 @@ export default function ShiftSessions() {
       return shiftMatch && startDateMatch && endDateMatch && distanceMatch;
     });
   }, [sessions, appliedFilters]);
-
-  function calculateHours(start?: string, end?: string) {
-    if (!start || !end) {
-      return 0;
-    }
-
-    const startDate = new Date(`2000-01-01T${start}`);
-    const endDate = new Date(`2000-01-01T${end}`);
-
-    const diff = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
-
-    return diff > 0 ? diff : 0;
-  }
 
   const summary = useMemo(() => {
     const result = filteredSessions.reduce(
@@ -326,13 +360,16 @@ export default function ShiftSessions() {
             <GenericFormModal
               config={shiftFormConfig}
               title={
-                editingSession ? "Edit Shift Session" : "Add Shift Session"
+                editingSession && !showDrafts
+                  ? "Edit Shift Session"
+                  : "Add Shift Session"
               }
               initialData={initialForm}
               editingData={editingSession || undefined}
               errors={errors}
               onSubmit={saveSession}
-              submitLabel={editingSession ? "Update" : "Save"}
+              submitLabel={editingSession && !showDrafts ? "Update" : "Save"}
+              onDraft={!editingSession ? saveAsDraft : undefined}
               onClose={() => {
                 setEditingSession(null);
                 setErrors(initialErrors);
@@ -349,7 +386,18 @@ export default function ShiftSessions() {
         />
       </div>
 
-      <List header="Shift History" items={filteredSessions} loading={loading}>
+      <List
+        header="Shift History"
+        items={filteredSessions}
+        loading={loading}
+        actions={[
+          {
+            label: showDrafts ? "Show Online Shifts" : "Show Drafts",
+            onClick: showDrafts ? fetchSessions : getAllDrafts,
+            variant: "outline",
+          },
+        ]}
+      >
         {filteredSessions.map((session) => (
           <div
             key={session.id}
@@ -427,7 +475,13 @@ export default function ShiftSessions() {
                 </button>
 
                 <button
-                  onClick={() => deleteSession(session.id || "")}
+                  onClick={() => {
+                    if (showDrafts) {
+                      deleteDraft(session.id || "");
+                      return;
+                    }
+                    deleteSession(session.id || "");
+                  }}
                   className="rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:cursor-pointer hover:bg-red-100"
                 >
                   Delete
@@ -447,4 +501,6 @@ export default function ShiftSessions() {
       </List>
     </div>
   );
-}
+};
+
+export default ShiftSessions;

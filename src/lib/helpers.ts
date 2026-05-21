@@ -11,7 +11,6 @@ const getTimeDifference = (
 
   let diffMs = endDate.getTime() - startDate.getTime();
 
-  // handle crossing midnight
   if (diffMs < 0) {
     diffMs += 24 * 60 * 60 * 1000;
   }
@@ -50,4 +49,17 @@ const getShiftByTime = () => {
   return "night";
 };
 
-export { getTimeDifference, getShiftByTime };
+const calculateHours = (start?: string, end?: string) => {
+  if (!start || !end) {
+    return 0;
+  }
+
+  const startDate = new Date(`2000-01-01T${start}`);
+  const endDate = new Date(`2000-01-01T${end}`);
+
+  const diff = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
+
+  return diff > 0 ? diff : 0;
+};
+
+export { getTimeDifference, getShiftByTime, calculateHours };

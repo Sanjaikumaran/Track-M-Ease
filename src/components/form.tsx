@@ -41,7 +41,7 @@ type ComboBoxFieldType = BaseFieldConfig & {
   placeholder?: string;
 };
 
-export type FormFieldConfig =
+type FormFieldConfig =
   | InputFieldType
   | TextareaFieldType
   | SelectFieldType
@@ -62,7 +62,7 @@ type GenericFormModalProps<T extends object> = {
   onChange?: (data: T) => void;
 };
 
-function GenericFormModal<T extends object>({
+const GenericFormModal = <T extends object>({
   title,
   initialData,
   editingData,
@@ -74,7 +74,7 @@ function GenericFormModal<T extends object>({
   onClose,
   onChange,
   onDraft,
-}: GenericFormModalProps<T>) {
+}: GenericFormModalProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const [formState, setFormState] = useState<T>(initialData);
   const [loading, setLoading] = useState(false);
@@ -262,6 +262,7 @@ function GenericFormModal<T extends object>({
       </Modal>
     </>
   );
-}
+};
 
 export default GenericFormModal;
+export type { FormFieldConfig };

@@ -5,11 +5,11 @@ import {
   type ConfirmOptions,
 } from "../context/deleteEntry/context";
 
-export function DeleteConfirmationProvider({
+const DeleteConfirmationProvider = ({
   children,
 }: {
   children: React.ReactNode;
-}) {
+}) => {
   const resolverRef = useRef<(() => void) | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export function DeleteConfirmationProvider({
     });
   }, []);
 
-  async function handleConfirm() {
+  const handleConfirm = async () => {
     if (!options) return;
 
     try {
@@ -37,11 +37,11 @@ export function DeleteConfirmationProvider({
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  function handleCancel() {
+  const handleCancel = () => {
     setOpen(false);
-  }
+  };
 
   return (
     <DeleteConfirmationContext.Provider value={{ confirmDelete }}>
@@ -59,4 +59,6 @@ export function DeleteConfirmationProvider({
       />
     </DeleteConfirmationContext.Provider>
   );
-}
+};
+
+export { DeleteConfirmationProvider };

@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-export type ConfirmOptions = {
+type ConfirmOptions = {
   title: string;
   message: string;
   confirmText?: string;
@@ -8,9 +8,13 @@ export type ConfirmOptions = {
   onConfirm: () => Promise<void> | void;
 };
 
-export type ConfirmContextType = {
+type ConfirmContextType = {
   confirmDelete: (options: ConfirmOptions) => Promise<void>;
 };
 
-export const DeleteConfirmationContext =
-  createContext<ConfirmContextType | null>(null);
+const DeleteConfirmationContext = createContext<ConfirmContextType | null>(
+  null,
+);
+
+export { DeleteConfirmationContext };
+export type { ConfirmOptions };

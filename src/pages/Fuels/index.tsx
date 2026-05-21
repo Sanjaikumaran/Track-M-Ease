@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import SupabaseService from "../../lib/supabase";
+import LocalDB from "../../lib/indexDb";
 
 import { useToast } from "../../context/toast";
 import { useDeleteConfirmation } from "../../context/deleteEntry";
@@ -59,7 +60,7 @@ const initialErrors = {
   amount: "",
 };
 
-export default function FuelPage() {
+const FuelPage = () => {
   const fuelService = new SupabaseService<FuelEntry>("fuel_entries");
   const toast = useToast();
   const { confirmDelete } = useDeleteConfirmation();
@@ -69,12 +70,15 @@ export default function FuelPage() {
   const [editingFuel, setEditingFuel] = useState<FuelEntry | null>(null);
   const [appliedFilters, setAppliedFilters] =
     useState<FilterState>(initialFilters);
+  const [showDrafts, setShowDrafts] = useState(false);
+
   const [errors, setErrors] = useState<Record<string, string>>(initialErrors);
 
   const fetchedRef = useRef<boolean>(false);
 
-  async function fetchFuels() {
+  const fetchFuels = async () => {
     setLoading(true);
+    setShowDrafts(false);
 
     try {
       const { data, error } = await fuelService.getAll(
@@ -93,7 +97,7 @@ export default function FuelPage() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (fetchedRef.current) return;
@@ -103,7 +107,7 @@ export default function FuelPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function validateForm(data: FuelEntry) {
+  const validateForm = (data: FuelEntry) => {
     const err = {
       fuel_date: "",
       fuel_time: "",
@@ -129,10 +133,14 @@ export default function FuelPage() {
 
     setErrors(err);
     return !Object.values(err).some(Boolean);
-  }
+  };
 
-  async function saveFuelEntry(data: FuelEntry) {
+  const saveFuelEntry = async (data: FuelEntry) => {
     if (!validateForm(data)) return false;
+
+    if (showDrafts && editingFuel) {
+      await LocalDB.remove("fuels", editingFuel.id!);
+    }
     const payload = {
       fuel_date: data.fuel_date,
       fuel_time: data.fuel_time,
@@ -168,9 +176,9 @@ export default function FuelPage() {
     } catch (err: unknown) {
       toast.error(`${err || "Save failed"}`);
     }
-  }
+  };
 
-  async function deleteFuel(id: string) {
+  const deleteFuel = async (id: string) => {
     await confirmDelete({
       title: "Delete Fuel Entry",
       message: "Are you sure you want to delete this fuel entry?",
@@ -188,7 +196,48 @@ export default function FuelPage() {
         fetchFuels();
       },
     });
-  }
+  };
+
+  const saveAsDraft = async (fuel: FuelEntry) => {
+    const id =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+    const draft = {
+      ...fuel,
+      id,
+      created_at: new Date().toISOString(),
+    };
+
+    await LocalDB.create("fuels", draft);
+
+    toast.success("Saved as draft");
+  };
+
+  const getAllDrafts = async () => {
+    setShowDrafts(true);
+    const drafts = await LocalDB.getAll("fuels");
+
+    setFuelEntries(drafts || []);
+  };
+
+  const deleteDraft = async (id: string) => {
+    await confirmDelete({
+      title: "Delete Fuel Draft",
+      message: "Are you sure you want to delete this fuel draft?",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+      onConfirm: async () => {
+        await LocalDB.remove("fuels", id);
+
+        toast.success("Draft deleted");
+
+        setShowDrafts(false);
+        fetchFuels();
+      },
+    });
+  };
 
   const filteredFuelEntries = useMemo(() => {
     return fuelEntries.filter((fuel) => {
@@ -289,12 +338,17 @@ export default function FuelPage() {
 
             <GenericFormModal
               config={fuelFormConfig}
-              title={editingFuel ? "Edit Fuel Entry" : "Add Fuel Entry"}
+              title={
+                editingFuel && !showDrafts
+                  ? "Edit Fuel Entry"
+                  : "Add Fuel Entry"
+              }
               initialData={initialForm}
               editingData={editingFuel || undefined}
               errors={errors}
               onSubmit={saveFuelEntry}
-              submitLabel={editingFuel ? "Update" : "Save"}
+              submitLabel={editingFuel && !showDrafts ? "Update" : "Save"}
+              onDraft={!editingFuel ? saveAsDraft : undefined}
               onClose={() => {
                 setEditingFuel(null);
                 setErrors(initialErrors);
@@ -316,7 +370,18 @@ export default function FuelPage() {
         />
       </div>
 
-      <List header="Fuel History" items={fuelWithMileage} loading={loading}>
+      <List
+        header="Fuel History"
+        items={fuelWithMileage}
+        loading={loading}
+        actions={[
+          {
+            label: showDrafts ? "Show Online Fuel" : "Show Drafts",
+            onClick: showDrafts ? fetchFuels : getAllDrafts,
+            variant: "outline",
+          },
+        ]}
+      >
         {fuelWithMileage.map((fuel) => (
           <div
             key={fuel.id}
@@ -405,7 +470,13 @@ export default function FuelPage() {
                 </button>
 
                 <button
-                  onClick={() => deleteFuel(fuel.id || "")}
+                  onClick={() => {
+                    if (showDrafts) {
+                      deleteDraft(fuel.id || "");
+                      return;
+                    }
+                    deleteFuel(fuel.id || "");
+                  }}
                   className="rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:cursor-pointer hover:bg-red-100"
                 >
                   Delete
@@ -425,4 +496,6 @@ export default function FuelPage() {
       </List>
     </div>
   );
-}
+};
+
+export default FuelPage;

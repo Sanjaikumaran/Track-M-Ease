@@ -1,6 +1,6 @@
 import React from "react";
 
-export type Option = {
+type Option = {
   label: string;
   value: string;
 };
@@ -16,7 +16,7 @@ type SelectProps = {
   onChange?: (value: string, e?: React.ChangeEvent<HTMLSelectElement>) => void;
 } & Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "onChange">;
 
-export default function Select({
+const Select = ({
   label,
   error,
   helperText,
@@ -27,10 +27,10 @@ export default function Select({
   onChange,
   disabled,
   ...props
-}: SelectProps) {
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+}: SelectProps) => {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onChange?.(e.target.value, e);
-  }
+  };
 
   return (
     <div className={`space-y-1 ${containerClassName}`}>
@@ -71,4 +71,7 @@ export default function Select({
       )}
     </div>
   );
-}
+};
+
+export default Select;
+export type { Option };

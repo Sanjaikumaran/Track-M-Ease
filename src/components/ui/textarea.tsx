@@ -17,7 +17,7 @@ type TextareaProps = {
   ) => void;
 } & Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "onChange">;
 
-export default function Textarea({
+const Textarea = ({
   label,
   error,
   helperText,
@@ -32,10 +32,10 @@ export default function Textarea({
   rows = 4,
 
   ...props
-}: TextareaProps) {
-  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+}: TextareaProps) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange?.(e.target.value, e);
-  }
+  };
 
   return (
     <div className={`space-y-1 ${containerClassName}`}>
@@ -76,4 +76,6 @@ export default function Textarea({
       )}
     </div>
   );
-}
+};
+
+export default Textarea;

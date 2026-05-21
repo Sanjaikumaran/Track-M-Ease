@@ -13,7 +13,7 @@ import List from "../../components/list";
 
 import { rideFilterConfig, rideFormConfig, rideSummaryConfig } from "./config";
 
-export interface RideEntry {
+interface RideEntry {
   id?: string;
 
   created_at?: string;
@@ -102,7 +102,7 @@ const initialErrors = {
   remarks: "",
 };
 
-export default function Rides() {
+const Rides = () => {
   const rideService = new SupabaseService<RideEntry>("ride_entries");
   const toast = useToast();
   const { confirmDelete } = useDeleteConfirmation();
@@ -117,7 +117,7 @@ export default function Rides() {
     useState<FilterState>(initialFilters);
   const [showDrafts, setShowDrafts] = useState<boolean>(false);
 
-  async function fetchRides() {
+  const fetchRides = async () => {
     setLoading(true);
     setShowDrafts(false);
 
@@ -140,7 +140,7 @@ export default function Rides() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (fetchedRef.current) {
@@ -154,7 +154,7 @@ export default function Rides() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function validateForm(data: RideEntry) {
+  const validateForm = (data: RideEntry) => {
     const newErrors = {
       ride_date: "",
       ride_type: "",
@@ -211,9 +211,9 @@ export default function Rides() {
     setErrors(newErrors);
 
     return !Object.values(newErrors).some(Boolean);
-  }
+  };
 
-  async function saveRideEntry(data: RideEntry) {
+  const saveRideEntry = async (data: RideEntry) => {
     if (!validateForm(data)) {
       return false;
     }
@@ -263,9 +263,9 @@ export default function Rides() {
     } catch (err: unknown) {
       toast.error(`${err || "Save failed"}`);
     }
-  }
+  };
 
-  async function deleteRide(id: string) {
+  const deleteRide = async (id: string) => {
     await confirmDelete({
       title: "Delete Ride Entry",
       message: "Are you sure you want to delete this ride entry?",
@@ -284,9 +284,9 @@ export default function Rides() {
         fetchRides();
       },
     });
-  }
+  };
 
-  async function saveAsDraft(ride: RideEntry) {
+  const saveAsDraft = async (ride: RideEntry) => {
     const id =
       typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
@@ -301,16 +301,16 @@ export default function Rides() {
     await LocalDB.create("rides", draft);
 
     toast.success("Saved as draft");
-  }
+  };
 
-  async function getAllDrafts() {
+  const getAllDrafts = async () => {
     setShowDrafts(true);
     const drafts = await LocalDB.getAll("rides");
 
     setRides(drafts);
-  }
+  };
 
-  async function deleteDraft(id: string) {
+  const deleteDraft = async (id: string) => {
     await confirmDelete({
       title: "Delete Ride Draft",
       message: "Are you sure you want to delete this ride draft?",
@@ -325,7 +325,7 @@ export default function Rides() {
         fetchRides();
       },
     });
-  }
+  };
 
   const filteredRides = useMemo(() => {
     return rides.filter((ride) => {
@@ -577,4 +577,6 @@ export default function Rides() {
       </List>
     </div>
   );
-}
+};
+
+export default Rides;

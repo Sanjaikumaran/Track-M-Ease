@@ -4,7 +4,7 @@ import type { SummaryCardConfig } from "../../components/summaryCard";
 import type { FormFieldConfig } from "../../components/form";
 import type { FilterFieldConfig } from "../../components/filter";
 
-export const rideFormConfig: FormFieldConfig[] = [
+const rideFormConfig: FormFieldConfig[] = [
   {
     key: "ride_date",
     label: "Ride Date",
@@ -62,7 +62,7 @@ export const rideFormConfig: FormFieldConfig[] = [
   },
 ];
 
-export const rideFilterConfig: FilterFieldConfig[] = [
+const rideFilterConfig: FilterFieldConfig[] = [
   {
     key: "rideType",
     label: "Ride Type",
@@ -115,7 +115,7 @@ export const rideFilterConfig: FilterFieldConfig[] = [
   },
 ];
 
-export const rideSummaryConfig: SummaryCardConfig[] = [
+const rideSummaryConfig: SummaryCardConfig[] = [
   {
     label: "Total Earnings",
     key: "totalEarnings",
@@ -159,3 +159,5 @@ export const rideSummaryConfig: SummaryCardConfig[] = [
     color: "orange",
   },
 ];
+
+export { rideFormConfig, rideFilterConfig, rideSummaryConfig };

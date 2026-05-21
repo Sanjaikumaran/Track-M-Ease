@@ -18,7 +18,7 @@ type InputProps = {
   onChange?: (value: string, e?: React.ChangeEvent<HTMLInputElement>) => void;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange">;
 
-export default function Input({
+const Input = ({
   label,
   error,
   helperText,
@@ -36,12 +36,12 @@ export default function Input({
   disabled,
 
   ...props
-}: InputProps) {
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+}: InputProps) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
     onChange?.(value, e);
-  }
+  };
 
   return (
     <div className={`space-y-1 ${containerClassName}`}>
@@ -77,4 +77,6 @@ export default function Input({
       )}
     </div>
   );
-}
+};
+
+export default Input;

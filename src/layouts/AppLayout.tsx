@@ -23,7 +23,7 @@ type NavItem = {
   subHeader?: string;
 };
 
-export default function AppLayout() {
+const AppLayout = () => {
   const location = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -61,9 +61,9 @@ export default function AppLayout() {
     },
   ];
 
-  async function handleLogout() {
+  const handleLogout = async () => {
     await supabase.auth.signOut();
-  }
+  };
 
   const currentPage = navItems.find((item) => item.path === location.pathname);
 
@@ -159,4 +159,6 @@ export default function AppLayout() {
       </div>
     </div>
   );
-}
+};
+
+export default AppLayout;

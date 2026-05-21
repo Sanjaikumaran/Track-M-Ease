@@ -20,8 +20,7 @@ type ModalProps = {
   closeOnBackdrop?: boolean;
   width?: string;
 };
-
-export default function Modal({
+const Modal = ({
   open,
   title,
   children,
@@ -29,13 +28,13 @@ export default function Modal({
   actions = [],
   closeOnBackdrop = true,
   width = "max-w-lg",
-}: ModalProps) {
+}: ModalProps) => {
   useEffect(() => {
-    function handleEscape(e: KeyboardEvent) {
+    const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
       }
-    }
+    };
 
     window.addEventListener("keydown", handleEscape);
     return () => {
@@ -92,4 +91,6 @@ export default function Modal({
       </div>
     </div>
   );
-}
+};
+
+export default Modal;

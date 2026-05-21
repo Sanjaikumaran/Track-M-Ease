@@ -15,7 +15,7 @@ interface ConfirmationModalProps {
   onCancel: () => void;
 }
 
-export default function ConfirmationModal({
+const ConfirmationModal = ({
   open,
   title = "Confirm Action",
   message,
@@ -25,7 +25,7 @@ export default function ConfirmationModal({
   loading = false,
   onConfirm,
   onCancel,
-}: ConfirmationModalProps) {
+}: ConfirmationModalProps) => {
   return (
     <Modal
       open={open}
@@ -58,4 +58,6 @@ export default function ConfirmationModal({
       </div>
     </Modal>
   );
-}
+};
+
+export default ConfirmationModal;

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import SupabaseService from "../../lib/supabase";
+import LocalDB from "../../lib/indexDb";
 
 import { useToast } from "../../context/toast";
 import { useDeleteConfirmation } from "../../context/deleteEntry";
@@ -16,11 +17,7 @@ import {
   transactionSummaryConfig,
 } from "./config";
 
-/* =========================
-   TYPES
-========================= */
-
-export interface Transaction {
+interface Transaction {
   id?: string;
   created_at?: string;
 
@@ -55,10 +52,6 @@ type FilterState = {
   reason?: string;
 };
 
-/* =========================
-   INITIAL STATE
-========================= */
-
 const initialForm: Transaction = {
   transaction_date: new Date().toISOString().split("T")[0],
   type: "expense",
@@ -91,11 +84,7 @@ const initialErrors: Record<string, string> = {
   category: "",
 };
 
-/* =========================
-   PAGE
-========================= */
-
-export default function TransactionsPage() {
+const Transactions = () => {
   const service = new SupabaseService<Transaction>("transactions");
 
   const toast = useToast();
@@ -107,15 +96,18 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<Transaction>(initialForm);
-  const [editing, setEditing] = useState<Transaction | null>(null);
+  const [editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
   const [errors, setErrors] = useState(initialErrors);
 
   const [draftFilters, setDraftFilters] = useState<FilterState>(initialFilters);
   const [appliedFilters, setAppliedFilters] =
     useState<FilterState>(initialFilters);
+  const [showDrafts, setShowDrafts] = useState(false);
 
-  async function fetchTransactions() {
+  const fetchTransactions = async () => {
     setLoading(true);
+    setShowDrafts(false);
 
     const { data, error } = await service.getAll(
       ["transaction_date", "transaction_time"],
@@ -130,7 +122,7 @@ export default function TransactionsPage() {
 
     setTransactions(data || []);
     setLoading(false);
-  }
+  };
 
   useEffect(() => {
     if (fetchedRef.current) return;
@@ -139,7 +131,7 @@ export default function TransactionsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function validate(data: Transaction) {
+  const validate = (data: Transaction) => {
     const err = { ...initialErrors };
 
     if (!data.transaction_date) err.transaction_date = "Required";
@@ -149,10 +141,14 @@ export default function TransactionsPage() {
 
     setErrors(err);
     return !Object.values(err).some(Boolean);
-  }
+  };
 
-  async function save(data: Transaction) {
+  const saveTransaction = async (data: Transaction) => {
     if (!validate(data)) return;
+
+    if (showDrafts && editingTransaction) {
+      await LocalDB.remove("transactions", editingTransaction.id!);
+    }
 
     const payload = {
       ...data,
@@ -163,8 +159,8 @@ export default function TransactionsPage() {
       reason: data.reason?.toLowerCase(),
     };
 
-    const { error } = editing
-      ? await service.update(editing.id!, payload)
+    const { error } = editingTransaction
+      ? await service.update(editingTransaction.id!, payload)
       : await service.create(payload);
 
     if (error) {
@@ -172,14 +168,16 @@ export default function TransactionsPage() {
       return;
     }
 
-    toast.success(editing ? "Updated successfully" : "Created successfully");
+    toast.success(
+      editingTransaction ? "Updated successfully" : "Created successfully",
+    );
 
-    setEditing(null);
+    setEditingTransaction(null);
     setErrors(initialErrors);
     fetchTransactions();
-  }
+  };
 
-  async function deleteTransaction(id: string) {
+  const deleteTransaction = async (id: string) => {
     await confirmDelete({
       title: "Delete Transaction",
       message: "Are you sure you want to delete this transaction?",
@@ -197,7 +195,48 @@ export default function TransactionsPage() {
         fetchTransactions();
       },
     });
-  }
+  };
+
+  const saveTransactionAsDraft = async (t: Transaction) => {
+    const id =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+    const draft = {
+      ...t,
+      id,
+      created_at: new Date().toISOString(),
+    };
+
+    await LocalDB.create("transactions", draft);
+
+    toast.success("saveTransactiond as draft");
+  };
+
+  const getAllDrafts = async () => {
+    setShowDrafts(true);
+    const drafts = await LocalDB.getAll("transactions");
+
+    setTransactions(drafts || []);
+  };
+
+  const deleteDraft = async (id: string) => {
+    await confirmDelete({
+      title: "Delete Transaction Draft",
+      message: "Are you sure you want to delete this transaction draft?",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+      onConfirm: async () => {
+        await LocalDB.remove("transactions", id);
+
+        toast.success("Draft deleted");
+
+        setShowDrafts(false);
+        fetchTransactions();
+      },
+    });
+  };
 
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
@@ -233,6 +272,7 @@ export default function TransactionsPage() {
   }, [filtered]);
 
   const balance = summary.income - summary.expense - summary.loan;
+
   const categories = useMemo(() => {
     return [
       ...new Set(
@@ -386,15 +426,22 @@ export default function TransactionsPage() {
             />
 
             <GenericFormModal
-              title={editing ? "Edit Transaction" : "Add Transaction"}
+              title={
+                editingTransaction && !showDrafts
+                  ? "Edit Transaction"
+                  : "Add Transaction"
+              }
               config={formConfig}
               initialData={initialForm}
-              editingData={editing || undefined}
+              editingData={editingTransaction || undefined}
               errors={errors}
-              onSubmit={save}
-              submitLabel={editing ? "Update" : "Save"}
+              onSubmit={saveTransaction}
+              onDraft={!editingTransaction ? saveTransactionAsDraft : undefined}
+              submitLabel={
+                editingTransaction && !showDrafts ? "Update" : "saveTransaction"
+              }
               onClose={() => {
-                setEditing(null);
+                setEditingTransaction(null);
                 setFormData(initialForm);
                 setErrors(initialErrors);
               }}
@@ -417,7 +464,18 @@ export default function TransactionsPage() {
         />
       </div>
 
-      <List header="Transaction History" items={filtered} loading={loading}>
+      <List
+        header="Transaction History"
+        items={filtered}
+        loading={loading}
+        actions={[
+          {
+            label: showDrafts ? "Show Online Transactions" : "Show Drafts",
+            onClick: showDrafts ? fetchTransactions : getAllDrafts,
+            variant: "outline",
+          },
+        ]}
+      >
         {filtered.map((t) => (
           <div
             key={t.id}
@@ -493,14 +551,20 @@ export default function TransactionsPage() {
 
             <div className="flex items-center justify-end gap-2">
               <button
-                onClick={() => setEditing(t)}
+                onClick={() => setEditingTransaction(t)}
                 className="hover:cursor-pointer rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600 transition hover:bg-blue-100"
               >
                 Edit
               </button>
 
               <button
-                onClick={() => deleteTransaction(t.id || "")}
+                onClick={() => {
+                  if (showDrafts) {
+                    deleteDraft(t.id || "");
+                    return;
+                  }
+                  deleteTransaction(t.id || "");
+                }}
                 className="hover:cursor-pointer rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100"
               >
                 Delete
@@ -511,4 +575,6 @@ export default function TransactionsPage() {
       </List>
     </div>
   );
-}
+};
+
+export default Transactions;

@@ -1,6 +1,6 @@
 import { Loader, type LucideIcon } from "lucide-react";
 
-export type SummaryCardConfig = {
+type SummaryCardConfig = {
   label: string;
   key: string;
   cardIcon: LucideIcon;
@@ -23,12 +23,12 @@ type SummaryCardsGridProps<T extends object> = {
   cols?: number;
 };
 
-function SummaryCardsGrid<T extends Record<string, string | number>>({
+const SummaryCardsGrid = <T extends Record<string, string | number>>({
   config,
   data,
   loading = false,
   cols = 2,
-}: SummaryCardsGridProps<T>) {
+}: SummaryCardsGridProps<T>) => {
   const gridCols = {
     1: "sm:grid-cols-1 2xl:grid-cols-1",
     2: "sm:grid-cols-2 2xl:grid-cols-2",
@@ -58,15 +58,9 @@ function SummaryCardsGrid<T extends Record<string, string | number>>({
       })}
     </div>
   );
-}
+};
 
-function SummaryCard({
-  title,
-  value,
-  icon,
-  color,
-  loading = false,
-}: {
+type SummaryCardProps = {
   title: string;
   value: string;
   icon: LucideIcon;
@@ -80,7 +74,15 @@ function SummaryCard({
     | "pink"
     | "emerald";
   loading?: boolean;
-}) {
+};
+
+const SummaryCard = ({
+  title,
+  value,
+  icon,
+  color,
+  loading = false,
+}: SummaryCardProps) => {
   const Icon = icon;
 
   const colors = {
@@ -109,6 +111,7 @@ function SummaryCard({
       </h2>
     </div>
   );
-}
+};
 
 export default SummaryCardsGrid;
+export type { SummaryCardConfig };

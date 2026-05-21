@@ -9,10 +9,7 @@ import type { SummaryCardConfig } from "../../components/summaryCard";
 import type { FormFieldConfig } from "../../components/form";
 import type { FilterFieldConfig } from "../../components/filter";
 
-/* =========================
-   FORM CONFIG
-========================= */
-export const transactionFormConfig: FormFieldConfig[] = [
+const transactionFormConfig: FormFieldConfig[] = [
   {
     key: "transaction_date",
     label: "Date",
@@ -72,10 +69,7 @@ export const transactionFormConfig: FormFieldConfig[] = [
   },
 ];
 
-/* =========================
-   FILTER CONFIG
-========================= */
-export const transactionFilterConfig: FilterFieldConfig[] = [
+const transactionFilterConfig: FilterFieldConfig[] = [
   {
     key: "type",
     label: "Type",
@@ -140,10 +134,7 @@ export const transactionFilterConfig: FilterFieldConfig[] = [
   },
 ];
 
-/* =========================
-   SUMMARY CONFIG
-========================= */
-export const transactionSummaryConfig: SummaryCardConfig[] = [
+const transactionSummaryConfig: SummaryCardConfig[] = [
   {
     label: "Income",
     key: "income",
@@ -173,3 +164,9 @@ export const transactionSummaryConfig: SummaryCardConfig[] = [
     color: "blue",
   },
 ];
+
+export {
+  transactionFormConfig,
+  transactionFilterConfig,
+  transactionSummaryConfig,
+};

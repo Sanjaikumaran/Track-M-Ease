@@ -4,7 +4,7 @@ import type { SummaryCardConfig } from "../../components/summaryCard";
 import type { FormFieldConfig } from "../../components/form";
 import type { FilterFieldConfig } from "../../components/filter";
 
-export const shiftFormConfig: FormFieldConfig[] = [
+const shiftFormConfig: FormFieldConfig[] = [
   {
     key: "shift_date",
     label: "Shift Date",
@@ -50,7 +50,7 @@ export const shiftFormConfig: FormFieldConfig[] = [
   },
 ];
 
-export const shiftFilterConfig: FilterFieldConfig[] = [
+const shiftFilterConfig: FilterFieldConfig[] = [
   {
     key: "shift",
     label: "Shift",
@@ -85,7 +85,7 @@ export const shiftFilterConfig: FilterFieldConfig[] = [
   },
 ];
 
-export const shiftSummaryConfig: SummaryCardConfig[] = [
+const shiftSummaryConfig: SummaryCardConfig[] = [
   {
     label: "Total Shifts",
     key: "totalShifts",
@@ -116,3 +116,5 @@ export const shiftSummaryConfig: SummaryCardConfig[] = [
     color: "indigo",
   },
 ];
+
+export { shiftFormConfig, shiftFilterConfig, shiftSummaryConfig };

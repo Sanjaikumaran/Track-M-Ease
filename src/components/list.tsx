@@ -1,6 +1,6 @@
 import Button from "./ui/button";
 
-export type ListActions = {
+type ListActions = {
   label: string;
   onClick?: () => void;
   variant?:

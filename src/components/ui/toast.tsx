@@ -10,7 +10,7 @@ import {
 
 import { ToastContext, type ToastItem } from "../../context/toast/context";
 
-export function ToastProvider({ children }: { children: React.ReactNode }) {
+const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const removeToast = useCallback((id: string) => {
@@ -90,15 +90,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       </div>
     </ToastContext.Provider>
   );
-}
+};
 
-function ToastCard({
+const ToastCard = ({
   toast,
   onClose,
 }: {
   toast: ToastItem;
   onClose: () => void;
-}) {
+}) => {
   const config = {
     success: {
       icon: <CheckCircle2 size={20} />,
@@ -146,4 +146,6 @@ function ToastCard({
       </button>
     </div>
   );
-}
+};
+
+export { ToastProvider, ToastCard };

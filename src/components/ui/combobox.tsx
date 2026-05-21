@@ -1,27 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-function ComboBoxInput({
-  label,
-  value,
-  onChange,
-  options,
-  placeholder,
-  error,
-}: {
+type ComboBoxInputProps = {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: string[];
   placeholder?: string;
   error?: string;
-}) {
+};
+const ComboBoxInput = ({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder,
+  error,
+}: ComboBoxInputProps) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(value);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearch(value);
   }, [value]);
 
@@ -88,6 +88,6 @@ function ComboBoxInput({
       )}
     </div>
   );
-}
+};
 
 export default ComboBoxInput;
