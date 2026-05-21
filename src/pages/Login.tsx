@@ -131,8 +131,8 @@ const Login = () => {
   };
 
   return (
-    <div className="flex h-screen items-center justify-center overflow-hidden bg-gray-100 px-4 py-4">
-      <div className="flex h-full max-h-[95vh] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-4 sm:overflow-hidden">
+      <div className="flex w-full max-w-md flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl sm:max-h-[95vh]">
         {/* Header */}
         <div className="shrink-0 bg-black px-6 py-6 text-white">
           <div className="mb-3 flex items-center justify-center">
