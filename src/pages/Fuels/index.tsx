@@ -301,26 +301,19 @@ const FuelPage = () => {
 
         if (f.travelled_km) acc.totalTravelledKm += Number(f.travelled_km);
 
-        if (f.mileage_per_litre) {
-          acc.totalMileage += Number(f.mileage_per_litre);
-          acc.mileageCount += 1;
-        }
-
         return acc;
       },
       {
         totalFuelCost: 0,
         totalLitres: 0,
         totalEntries: 0,
-        totalMileage: 0,
-        mileageCount: 1,
         totalTravelledKm: 0,
       },
     );
   }, [fuelWithMileage]);
 
   const averageMileage =
-    summary.mileageCount > 0 ? summary.totalMileage / summary.mileageCount : 0;
+    summary.totalTravelledKm > 0 && summary.totalLitres ? summary.totalTravelledKm / summary.totalLitres : 0;
 
   return (
     <div className="space-y-4 p-4">
