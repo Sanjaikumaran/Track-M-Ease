@@ -280,7 +280,7 @@ const FuelPage = () => {
 
       const travelled = Number(entry.odometer_km) - Number(prev.odometer_km);
 
-      const mileage = prev.litres > 0 ? travelled / Number(prev.litres) : null;
+      const mileage = prev.litres > 0 ? travelled / Number(entry.litres) : null;
 
       return {
         ...entry,
