@@ -406,9 +406,7 @@ const Transactions = () => {
           <div>
             <h2 className="text-xl font-bold">Transactions Summary</h2>
 
-            <p className="text-sm text-gray-500">
-              Overall summary of transactions
-            </p>
+            <p className="text-sm text-gray-500">Daily transactions overview</p>
           </div>
 
           <div className="flex gap-2">
@@ -439,7 +437,7 @@ const Transactions = () => {
               onSubmit={saveTransaction}
               onDraft={!editingTransaction ? saveTransactionAsDraft : undefined}
               submitLabel={
-                editingTransaction && !showDrafts ? "Update" : "saveTransaction"
+                editingTransaction && !showDrafts ? "Update" : "Save"
               }
               onClose={() => {
                 setEditingTransaction(null);

@@ -326,7 +326,11 @@ const FuelPage = () => {
     <div className="space-y-4 p-4">
       <div className="rounded-lg bg-white p-4 shadow">
         <div className="mb-4 flex items-center justify-between ">
-          <h2 className="text-xl font-bold ">Fuel Summary</h2>
+          <div>
+            <h2 className="text-xl font-bold">Fuel Summary</h2>
+
+            <p className="text-sm text-gray-500">Fuel consumption overview</p>
+          </div>
 
           <div className="flex gap-2">
             <GenericFilters

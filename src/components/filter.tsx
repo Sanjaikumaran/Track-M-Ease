@@ -83,7 +83,7 @@ const GenericFilters = <T extends object>({
       </Button>
 
       {showFilters && (
-        <div className="absolute right-0 top-12 z-50 w-[320px] space-y-4 rounded-lg border bg-white p-4 shadow-xl">
+        <div className="absolute top-12 z-50 w-[calc(100vw-32px)] max-w-[320px] space-y-4 rounded-lg border bg-white p-4 shadow-xl left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">{title}</h3>
 
@@ -97,7 +97,6 @@ const GenericFilters = <T extends object>({
               <X size={18} />
             </button>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             {config.map((field) => {
               const value = draftFilters[field.key as keyof T];
@@ -179,7 +178,6 @@ const GenericFilters = <T extends object>({
               }
             })}
           </div>
-
           <div className="flex items-center justify-end gap-2">
             <Button
               variant="secondary"
