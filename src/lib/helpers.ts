@@ -62,4 +62,36 @@ const calculateHours = (start?: string, end?: string) => {
   return diff > 0 ? diff : 0;
 };
 
-export { getTimeDifference, getShiftByTime, calculateHours };
+const formatDate = (date?: string | Date) => {
+  if (!date) {
+    return "--";
+  }
+
+  const parsedDate = new Date(date);
+
+  const day = String(parsedDate.getDate()).padStart(2, "0");
+  const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+  const year = parsedDate.getFullYear();
+
+  return `${day}-${month}-${year}`;
+};
+
+const formatTime12Hour = (time?: string) => {
+  if (!time) {
+    return "--";
+  }
+
+  return new Date(`2000-01-01T${time}`).toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+export {
+  getTimeDifference,
+  getShiftByTime,
+  calculateHours,
+  formatDate,
+  formatTime12Hour,
+};

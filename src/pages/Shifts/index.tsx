@@ -19,6 +19,8 @@ import {
 
 import {
   calculateHours,
+  formatDate,
+  formatTime12Hour,
   getShiftByTime,
   getTimeDifference,
 } from "../../lib/helpers";
@@ -410,8 +412,8 @@ const ShiftSessions = () => {
                 </h3>
 
                 <p className="mt-1 text-sm text-gray-500">
-                  {session.shift_start_time || "--"} -{" "}
-                  {session.shift_end_time || "--"}
+                  {formatTime12Hour(session.shift_start_time)} -{" "}
+                  {formatTime12Hour(session.shift_end_time)}
                 </p>
               </div>
 
@@ -429,7 +431,7 @@ const ShiftSessions = () => {
                 <p className="text-xs text-gray-400">Date</p>
 
                 <p className="font-medium text-gray-700">
-                  {session.shift_date}
+                  {formatDate(session.shift_date)}
                 </p>
               </div>
 

@@ -11,12 +11,13 @@ import SummaryCardsGrid from "../../components/summaryCard";
 import List from "../../components/list";
 
 import { fuelFilterConfig, fuelFormConfig, fuelSummaryConfig } from "./config";
+import { formatDate, formatTime12Hour } from "../../lib/helpers";
 
 type FuelEntry = {
   id?: string;
   created_at?: string;
   fuel_date: string;
-  fuel_time: string | null;
+  fuel_time: string;
   litres: number;
   amount: number;
   odometer_km: number | null;
@@ -412,13 +413,17 @@ const FuelPage = () => {
               <div>
                 <p className="text-xs text-gray-400">Date</p>
 
-                <p className="font-medium text-gray-700">{fuel.fuel_date}</p>
+                <p className="font-medium text-gray-700">
+                  {formatDate(fuel.fuel_date)}
+                </p>
               </div>
 
               <div>
                 <p className="text-xs text-gray-400">Time</p>
 
-                <p className="font-medium text-gray-700">{fuel.fuel_time}</p>
+                <p className="font-medium text-gray-700">
+                  {formatTime12Hour(fuel.fuel_time)}
+                </p>
               </div>
 
               <div>

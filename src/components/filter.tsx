@@ -116,7 +116,7 @@ const GenericFilters = <T extends object>({
                       }
                       className={`${
                         field.colSpan === 2 ? "col-span-2" : "col-span-1"
-                      } flex h-9 items-center justify-center rounded-lg text-sm font-medium transition-all ${
+                      } flex h-9 items-center justify-center rounded-lg text-sm font-medium transition-all hover:cursor-pointer ${
                         value
                           ? "bg-green-500 text-white"
                           : "bg-gray-100 text-gray-700"

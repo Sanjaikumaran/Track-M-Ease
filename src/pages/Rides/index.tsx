@@ -12,6 +12,7 @@ import SummaryCardsGrid from "../../components/summaryCard";
 import List from "../../components/list";
 
 import { rideFilterConfig, rideFormConfig, rideSummaryConfig } from "./config";
+import { formatDate, formatTime12Hour } from "../../lib/helpers";
 
 interface RideEntry {
   id?: string;
@@ -54,6 +55,7 @@ interface RideEntry {
 
 type FilterState = {
   rideType: string;
+  shift: string;
   startDate: string;
   endDate: string;
   minEarning: string;
@@ -79,6 +81,7 @@ const initialForm: RideEntry = {
 
 const initialFilters: FilterState = {
   rideType: "all",
+  shift: "all",
   startDate: "",
   endDate: "",
   minEarning: "",
@@ -333,6 +336,10 @@ const Rides = () => {
         appliedFilters.rideType === "all" ||
         ride.ride_type === appliedFilters.rideType;
 
+      const shiftMatch =
+        appliedFilters.shift === "all" ||
+        ride.shift_sessions?.shift === appliedFilters.shift.toLowerCase();
+
       const startDateMatch =
         !appliedFilters.startDate || ride.ride_date >= appliedFilters.startDate;
 
@@ -360,6 +367,7 @@ const Rides = () => {
 
       return (
         rideTypeMatch &&
+        shiftMatch &&
         startDateMatch &&
         endDateMatch &&
         earningMatch &&
@@ -476,7 +484,8 @@ const Rides = () => {
                 </h3>
 
                 <p className="mt-1 text-sm text-gray-500">
-                  {ride.ride_start_time || "--"} - {ride.ride_end_time || "--"}
+                  {formatTime12Hour(ride.ride_start_time)} -{" "}
+                  {formatTime12Hour(ride.ride_end_time)}
                 </p>
               </div>
 
@@ -493,7 +502,9 @@ const Rides = () => {
               <div>
                 <p className="text-xs text-gray-400">Date</p>
 
-                <p className="font-medium text-gray-700">{ride.ride_date}</p>
+                <p className="font-medium text-gray-700">
+                  {formatDate(ride.ride_date)}
+                </p>
               </div>
 
               <div>

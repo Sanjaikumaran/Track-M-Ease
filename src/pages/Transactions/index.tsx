@@ -16,6 +16,7 @@ import {
   transactionFilterConfig,
   transactionSummaryConfig,
 } from "./config";
+import { formatDate, formatTime12Hour } from "../../lib/helpers";
 
 interface Transaction {
   id?: string;
@@ -513,7 +514,8 @@ const Transactions = () => {
               <div>
                 <p className="text-xs text-gray-400">Date & Time</p>
                 <p className="font-medium text-gray-700">
-                  {t.transaction_date} {t.transaction_time || "-"}
+                  {formatDate(t.transaction_date)}{" "}
+                  {formatTime12Hour(t.transaction_time) || "-"}
                 </p>
               </div>
 

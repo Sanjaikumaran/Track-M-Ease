@@ -60,6 +60,7 @@ const transactionFormConfig: FormFieldConfig[] = [
     label: "Reason",
     type: "combobox",
     options: [],
+    colSpan: 2,
   },
   {
     key: "remarks",

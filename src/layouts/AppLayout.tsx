@@ -91,7 +91,7 @@ const AppLayout = () => {
 
           <button
             onClick={() => setSidebarOpen(false)}
-            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden"
+            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden hover:cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -139,7 +139,7 @@ const AppLayout = () => {
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-white px-5 py-3.5 shadow-sm">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden"
+            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden hover:cursor-pointer"
           >
             <Menu size={22} />
           </button>

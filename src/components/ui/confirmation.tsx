@@ -1,7 +1,4 @@
-// components/ui/confirmation-modal.tsx
-
 import Modal from "./modal";
-// import Button from "./ui/button";
 
 interface ConfirmationModalProps {
   open: boolean;

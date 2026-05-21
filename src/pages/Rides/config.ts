@@ -20,6 +20,26 @@ const rideFormConfig: FormFieldConfig[] = [
     ],
   },
   {
+    key: "ride_start_time",
+    label: "Ride Start Time",
+    type: "time",
+  },
+  {
+    key: "ride_end_time",
+    label: "Ride End Time",
+    type: "time",
+  },
+  {
+    key: "start_km",
+    label: "Start KM",
+    type: "number",
+  },
+  {
+    key: "end_km",
+    label: "End KM",
+    type: "number",
+  },
+  {
     key: "earning",
     label: "Earning",
     type: "number",
@@ -33,26 +53,6 @@ const rideFormConfig: FormFieldConfig[] = [
     key: "extra_amount",
     label: "Extra Amount",
     type: "number",
-  },
-  {
-    key: "start_km",
-    label: "Start KM",
-    type: "number",
-  },
-  {
-    key: "end_km",
-    label: "End KM",
-    type: "number",
-  },
-  {
-    key: "ride_start_time",
-    label: "Ride Start Time",
-    type: "time",
-  },
-  {
-    key: "ride_end_time",
-    label: "Ride End Time",
-    type: "time",
   },
   {
     key: "remarks",
@@ -71,6 +71,18 @@ const rideFilterConfig: FilterFieldConfig[] = [
       { label: "All", value: "all" },
       { label: "Passenger", value: "passenger" },
       { label: "Parcel", value: "parcel" },
+    ],
+  },
+  {
+    key: "shift",
+    label: "Shift",
+    type: "select",
+    options: [
+      { label: "All", value: "all" },
+      { label: "Morning", value: "morning" },
+      { label: "Afternoon", value: "afternoon" },
+      { label: "Evening", value: "evening" },
+      { label: "Night", value: "night" },
     ],
   },
   {
