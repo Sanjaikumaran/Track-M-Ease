@@ -78,7 +78,7 @@ const AppLayout = () => {
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 flex h-screen w-72 flex-col border-r bg-white transition-transform duration-300
+        className={`fixed top-0 left-0 z-50 flex h-[100dvh] w-72 flex-col overflow-hidden border-r bg-white transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
       >
@@ -97,7 +97,7 @@ const AppLayout = () => {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 p-3">
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
 

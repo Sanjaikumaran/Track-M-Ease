@@ -26,7 +26,7 @@ const Modal = ({
   children,
   onClose,
   actions = [],
-  closeOnBackdrop = true,
+  closeOnBackdrop = false,
   width = "max-w-lg",
 }: ModalProps) => {
   useEffect(() => {

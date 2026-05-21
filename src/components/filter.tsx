@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Filter, X } from "lucide-react";
 
 import Button from "./ui/button";
@@ -55,6 +55,7 @@ const GenericFilters = <T extends object>({
   onChange,
   onClose,
 }: GenericFiltersProps<T>) => {
+  const filterRef = useRef<HTMLDivElement>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [draftFilters, setDraftFilters] = useState<T>(filters);
 
@@ -65,6 +66,21 @@ const GenericFilters = <T extends object>({
     }));
     onChange?.({ ...draftFilters, [key]: value } as T);
   };
+
+  const handleClickOutside = (e: MouseEvent) => {
+    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      setShowFilters(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showFilters) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showFilters]);
 
   return (
     <div className="relative">
@@ -83,7 +99,10 @@ const GenericFilters = <T extends object>({
       </Button>
 
       {showFilters && (
-        <div className="absolute top-12 z-50 w-[calc(100vw-32px)] max-w-[320px] space-y-4 rounded-lg border bg-white p-4 shadow-xl left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0">
+        <div
+          ref={filterRef}
+          className="absolute top-12 z-50 w-[calc(100vw-32px)] max-w-[320px] space-y-4 rounded-lg border bg-white p-4 shadow-xl left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0"
+        >
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">{title}</h3>
 
