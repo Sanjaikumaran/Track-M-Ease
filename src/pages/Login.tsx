@@ -13,13 +13,11 @@ const Login = () => {
   const toast = useToast();
 
   const [mode, setMode] = useState<AuthMode>("login");
-
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
-
   const [confirmPassword, setConfirmPassword] = useState("");
-
+  const [displayName, setDisplayName] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -46,6 +44,16 @@ const Login = () => {
       return;
     }
 
+    if (!displayName.trim()) {
+      toast.error("Display name is required");
+      return;
+    }
+
+    if (!phone.trim()) {
+      toast.error("Phone number is required");
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
@@ -53,6 +61,10 @@ const Login = () => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
+        data: {
+          display_name: displayName,
+          phone: phone,
+        },
       },
     });
 
@@ -119,24 +131,27 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
-        <div className="bg-black px-8 py-10 text-white">
-          <div className="mb-5 flex items-center justify-center">
-            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur">
-              <Receipt size={36} />
+    <div className="flex h-screen items-center justify-center overflow-hidden bg-gray-100 px-4 py-4">
+      <div className="flex h-full max-h-[95vh] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
+        {/* Header */}
+        <div className="shrink-0 bg-black px-6 py-6 text-white">
+          <div className="mb-3 flex items-center justify-center">
+            <div className="rounded-2xl bg-white/10 p-3 backdrop-blur">
+              <Receipt size={30} />
             </div>
           </div>
 
-          <h1 className="text-center text-3xl font-bold">Track M Ease</h1>
+          <h1 className="text-center text-2xl font-bold">Track M Ease</h1>
 
-          <p className="mt-2 text-center text-sm text-gray-300">
+          <p className="mt-1 text-center text-xs text-gray-300">
             Track rides, fuel, shifts and transactions easily
           </p>
         </div>
 
-        <div className="p-8">
-          <div className="mb-6 flex rounded-xl bg-gray-100 p-1">
+        {/* Body */}
+        <div className="flex min-h-0 flex-1 flex-col p-6">
+          {/* Tabs */}
+          <div className="mb-5 flex shrink-0 rounded-xl bg-gray-100 p-1">
             <button
               onClick={() => setMode("login")}
               className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition hover:cursor-pointer ${
@@ -156,75 +171,114 @@ const Login = () => {
             </button>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Email
-              </label>
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className="space-y-4">
+              {mode === "signup" && (
+                <>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Display Name
+                    </label>
 
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
-              />
-            </div>
+                    <input
+                      type="text"
+                      placeholder="Enter your display name"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
+                    />
+                  </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Password
-              </label>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Phone Number
+                    </label>
 
-              <input
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
-              />
-            </div>
+                    <input
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
+                    />
+                  </div>
+                </>
+              )}
 
-            {mode === "signup" && (
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Confirm Password
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Password
                 </label>
 
                 <input
                   type="password"
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
                 />
               </div>
-            )}
 
-            {mode === "signup" && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                <div className="flex items-start gap-3">
-                  <MailCheck size={20} className="mt-0.5 text-amber-600" />
+              {mode === "signup" && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Confirm Password
+                  </label>
 
-                  <div>
-                    <p className="text-sm font-semibold text-amber-700">
-                      Email Verification Required
-                    </p>
+                  <input
+                    type="password"
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
+                  />
+                </div>
+              )}
 
-                    <p className="mt-1 text-xs leading-relaxed text-amber-600">
-                      After signup, a verification email will be sent to your
-                      inbox.
-                    </p>
+              {mode === "signup" && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <MailCheck
+                      size={20}
+                      className="mt-0.5 shrink-0 text-amber-600"
+                    />
+
+                    <div>
+                      <p className="text-sm font-semibold text-amber-700">
+                        Email Verification Required
+                      </p>
+
+                      <p className="mt-1 text-xs leading-relaxed text-amber-600">
+                        After signup, a verification email will be sent to your
+                        inbox.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          </div>
 
+          <div className="mt-5 shrink-0 space-y-3 border-t border-gray-100 pt-4">
             <Button
               onClick={mode === "login" ? handleLogin : handleSignup}
               variant="primary"
               disabled={loading}
-              className="mt-2 w-full"
+              className="w-full"
             >
               {loading
                 ? "Please wait..."
@@ -241,10 +295,8 @@ const Login = () => {
                 Forgot Password?
               </button>
             )}
-          </div>
 
-          <div className="mt-8 border-t border-gray-100 pt-5">
-            <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+            <div className="flex items-center justify-center gap-2 pt-2 text-xs text-gray-400">
               <ShieldCheck size={14} />
 
               <span>Secure authentication powered by Supabase</span>

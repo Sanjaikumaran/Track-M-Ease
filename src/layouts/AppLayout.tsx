@@ -8,13 +8,16 @@ import {
   Fuel,
   BellElectric,
   LogOut,
+  User as UserIcon,
+  ChevronDown,
 } from "lucide-react";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "../lib/supabase";
 
 import Button from "../components/ui/button";
+import type { User } from "@supabase/supabase-js";
 
 type NavItem = {
   label: string;
@@ -27,6 +30,35 @@ const AppLayout = () => {
   const location = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const [user, setUser] = useState<User | null>(null);
+
+  const profileRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const navItems: NavItem[] = [
     {
@@ -68,6 +100,7 @@ const AppLayout = () => {
   const currentPage = navItems.find((item) => item.path === location.pathname);
 
   const HeaderIcon = currentPage?.icon;
+
   return (
     <div className="min-h-[100dvh] bg-gray-100">
       {sidebarOpen && (
@@ -136,20 +169,91 @@ const AppLayout = () => {
       </aside>
 
       <div className="lg:ml-72">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-white px-5 py-3.5 shadow-sm">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden hover:cursor-pointer"
-          >
-            <Menu size={22} />
-          </button>
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-white px-5 py-3.5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="rounded-lg p-2 hover:bg-gray-100 lg:hidden hover:cursor-pointer"
+            >
+              <Menu size={22} />
+            </button>
 
-          {HeaderIcon && <HeaderIcon size={34} />}
+            {HeaderIcon && <HeaderIcon size={34} />}
 
-          <div>
-            <h1 className="text-2xl font-bold">{currentPage?.label}</h1>
+            <div>
+              <h1 className="text-2xl font-bold">{currentPage?.label}</h1>
 
-            <p className="text-sm text-gray-500">{currentPage?.subHeader}</p>
+              <p className="text-sm text-gray-500">{currentPage?.subHeader}</p>
+            </div>
+          </div>
+
+          {/* PROFILE */}
+          <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => setProfileOpen((prev) => !prev)}
+              className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 transition hover:cursor-pointer hover:bg-gray-50"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white">
+                <UserIcon size={18} />
+              </div>
+
+              <div className="hidden text-left sm:block">
+                <p className="max-w-[140px] truncate text-sm font-semibold text-gray-800">
+                  {user?.user_metadata?.display_name || "User"}
+                </p>
+              </div>
+
+              <ChevronDown size={16} className="text-gray-500" />
+            </button>
+
+            {profileOpen && (
+              <div className="absolute right-0 mt-3 w-72 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
+                <div className="border-b bg-gray-50 p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black text-white">
+                      <UserIcon size={24} />
+                    </div>
+
+                    <div className="min-w-0">
+                      <h3 className="truncate font-semibold text-gray-900">
+                        {user?.user_metadata?.display_name || "User"}
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 p-5">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                      Email
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-700">
+                      {user?.email || "--"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                      Phone
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-700">
+                      {user?.user_metadata?.phone || "--"}
+                    </p>
+                  </div>
+
+                  <Button
+                    variant="danger"
+                    fullWidth
+                    leftIcon={<LogOut size={16} />}
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
