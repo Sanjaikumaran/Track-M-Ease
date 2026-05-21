@@ -313,7 +313,7 @@ const FuelPage = () => {
         totalLitres: 0,
         totalEntries: 0,
         totalMileage: 0,
-        mileageCount: 0,
+        mileageCount: 1,
         totalTravelledKm: 0,
       },
     );
