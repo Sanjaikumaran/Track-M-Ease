@@ -6,9 +6,8 @@ import {
   Receipt,
   Bike,
   Fuel,
-  History,
+  BellElectric,
   LogOut,
-  Wallet,
 } from "lucide-react";
 
 import { useState } from "react";
@@ -21,7 +20,6 @@ type NavItem = {
   label: string;
   path: string;
   icon: React.ComponentType<{ size?: number }>;
-  headerIcon?: React.ComponentType<{ size?: number }>;
   subHeader?: string;
 };
 
@@ -40,27 +38,26 @@ export default function AppLayout() {
       label: "Transactions",
       path: "/transactions",
       icon: Receipt,
-      headerIcon: Wallet,
       subHeader: "Manage your income & expenses",
-    },
-    {
-      label: "Rides",
-      path: "/rides",
-      icon: Bike,
-      headerIcon: Bike,
-      subHeader: "Manage your rides",
     },
     {
       label: "Fuel",
       path: "/fuel",
       icon: Fuel,
-      headerIcon: Fuel,
       subHeader: "Manage fuel expenses",
     },
     {
-      label: "History",
-      path: "/history",
-      icon: History,
+      label: "Rides",
+      path: "/rides",
+      icon: Bike,
+      subHeader: "Manage your rides",
+    },
+
+    {
+      label: "Sift Sessions",
+      path: "/shifts",
+      icon: BellElectric,
+      subHeader: "Manage your shift sessions",
     },
   ];
 
@@ -70,10 +67,9 @@ export default function AppLayout() {
 
   const currentPage = navItems.find((item) => item.path === location.pathname);
 
-  const HeaderIcon = currentPage?.headerIcon;
+  const HeaderIcon = currentPage?.icon;
   return (
     <div className="min-h-[100dvh] bg-gray-100">
-      {/* MOBILE OVERLAY */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
@@ -81,13 +77,11 @@ export default function AppLayout() {
         />
       )}
 
-      {/* SIDEBAR */}
       <aside
         className={`fixed top-0 left-0 z-50 flex h-screen w-72 flex-col border-r bg-white transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
       >
-        {/* SIDEBAR HEADER */}
         <div className="flex items-center justify-between border-b px-5 py-4">
           <div>
             <h1 className="text-xl font-bold">Track-M-Ease</h1>
@@ -95,7 +89,6 @@ export default function AppLayout() {
             <p className="text-sm text-gray-500">Expense Manager</p>
           </div>
 
-          {/* CLOSE BUTTON MOBILE */}
           <button
             onClick={() => setSidebarOpen(false)}
             className="rounded-lg p-2 hover:bg-gray-100 lg:hidden"
@@ -104,7 +97,6 @@ export default function AppLayout() {
           </button>
         </div>
 
-        {/* NAVIGATION */}
         <nav className="flex-1 space-y-1 p-3">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -131,7 +123,6 @@ export default function AppLayout() {
           })}
         </nav>
 
-        {/* LOGOUT */}
         <div className="border-t p-4">
           <Button
             variant="danger"
@@ -144,11 +135,8 @@ export default function AppLayout() {
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
       <div className="lg:ml-72">
-        {/* HEADER */}
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-white px-5 py-3.5 shadow-sm">
-          {/* OPEN SIDEBAR BUTTON */}
           <button
             onClick={() => setSidebarOpen(true)}
             className="rounded-lg p-2 hover:bg-gray-100 lg:hidden"
@@ -165,7 +153,6 @@ export default function AppLayout() {
           </div>
         </header>
 
-        {/* PAGE CONTENT */}
         <main className="p-4">
           <Outlet />
         </main>

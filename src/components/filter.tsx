@@ -59,7 +59,6 @@ function GenericFilters<T extends object>({
   onClose,
 }: GenericFiltersProps<T>) {
   const [showFilters, setShowFilters] = useState(false);
-  console.log("Filters:", filters);
   const [draftFilters, setDraftFilters] = useState<T>(filters);
 
   const updateFilter = <K extends keyof T>(key: K, value: T[K]) => {

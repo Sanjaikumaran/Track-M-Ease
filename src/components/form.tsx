@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import Modal from "./ui/modal";
 import Input from "./ui/input";
 import Textarea from "./ui/textarea";
-import Select from "./ui/select";
+import Select, { type Option } from "./ui/select";
 import Button, { type ButtonVariant } from "./ui/button";
 import ComboBoxInput from "./ui/combobox";
 
@@ -26,10 +26,7 @@ type TextareaFieldType = BaseFieldConfig & {
 
 type SelectFieldType = BaseFieldConfig & {
   type: "select";
-  options: {
-    label: string;
-    value: string;
-  }[];
+  options: Option[];
 };
 
 type ToggleFieldType = BaseFieldConfig & {

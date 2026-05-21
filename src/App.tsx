@@ -8,8 +8,9 @@ import AppLayout from "./layouts/AppLayout";
 
 import Login from "./pages/Login";
 import Rides from "./pages/Rides";
-import FuelPage from "./pages/Fuel";
-import TransactionsPage from "./pages/Transactions";
+import Fuel from "./pages/Fuel";
+import Transactions from "./pages/Transactions";
+import ShiftSessions from "./pages/Shifts";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -37,9 +38,10 @@ export default function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/transactions" element={<TransactionsPage />} />
+        <Route path="/transactions" element={<Transactions />} />
         <Route path="/rides" element={<Rides />} />
-        <Route path="/fuel" element={<FuelPage />} />
+        <Route path="/fuel" element={<Fuel />} />
+        <Route path="/shifts" element={<ShiftSessions />} />
         <Route
           path="*"
           element={

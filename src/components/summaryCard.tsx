@@ -29,10 +29,15 @@ function SummaryCardsGrid<T extends Record<string, string | number>>({
   loading = false,
   cols = 2,
 }: SummaryCardsGridProps<T>) {
+  const gridCols = {
+    1: "sm:grid-cols-1 2xl:grid-cols-1",
+    2: "sm:grid-cols-2 2xl:grid-cols-2",
+    3: "sm:grid-cols-3 2xl:grid-cols-3",
+    4: "sm:grid-cols-4 2xl:grid-cols-4",
+  };
+
   return (
-    <div
-      className={`grid w-full grid-cols-1 gap-4 sm:grid-cols-${cols} 2xl:grid-cols-${cols}`}
-    >
+    <div className={`grid w-full gap-4 ${gridCols[cols as 1 | 2 | 3 | 4]}`}>
       {config.map((item) => {
         const rawValue = data[item.key];
 

@@ -25,8 +25,14 @@ class SupabaseService<T extends BaseEntity> {
     return user?.id;
   }
 
-  async getAll(sortBy?: string[], sortOrder: "asc" | "desc" = "desc") {
-    let query = supabase.from(this.tableName).select("*");
+  async getAll(
+    sortBy?: string[],
+    sortOrder: "asc" | "desc" = "desc",
+    selectFields: string[] = [],
+  ) {
+    const fields = selectFields.length > 0 ? selectFields.join(",") : "*";
+
+    let query = supabase.from(this.tableName).select(fields);
 
     if (sortBy?.length) {
       sortBy.forEach((field) => {
@@ -36,7 +42,12 @@ class SupabaseService<T extends BaseEntity> {
       });
     }
 
-    return await query;
+    const response = await query;
+
+    return {
+      data: (response.data || []) as unknown as T[],
+      error: response.error,
+    };
   }
 
   async getById(id: string) {

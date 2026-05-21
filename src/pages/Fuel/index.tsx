@@ -79,7 +79,7 @@ export default function FuelPage() {
     try {
       const { data, error } = await fuelService.getAll(
         ["fuel_date", "fuel_time"],
-        "asc",
+        "desc",
       );
 
       if (error) {
@@ -133,7 +133,6 @@ export default function FuelPage() {
 
   async function saveFuelEntry(data: FuelEntry) {
     if (!validateForm(data)) return false;
-    console.log("Validated data:", data);
     const payload = {
       fuel_date: data.fuel_date,
       fuel_time: data.fuel_time,
@@ -275,7 +274,6 @@ export default function FuelPage() {
 
   return (
     <div className="space-y-4 p-4">
-      {/* SUMMARY */}
       <div className="rounded-lg bg-white p-4 shadow">
         <div className="mb-4 flex items-center justify-between ">
           <h2 className="text-xl font-bold ">Fuel Summary</h2>

@@ -21,7 +21,10 @@ export interface RideEntry {
   ride_date: string;
 
   shift_session_id?: string | null;
-
+  shift_sessions?: {
+    id: string;
+    shift: string;
+  } | null;
   ride_type: "passenger" | "parcel";
 
   earning: number;
@@ -121,9 +124,11 @@ export default function Rides() {
     try {
       const { data, error } = await rideService.getAll(
         ["ride_date", "ride_start_time"],
-        "asc",
+        "desc",
+        ["*", "shift_sessions(id, shift)"],
       );
 
+      setRides(data || []);
       if (error) {
         toast.error(error.message);
         return;
@@ -213,6 +218,10 @@ export default function Rides() {
       return false;
     }
 
+    if (showDrafts && editingRide) {
+      await LocalDB.remove("rides", editingRide.id!);
+    }
+
     const payload = {
       ride_date: data.ride_date,
       ride_type: data.ride_type,
@@ -229,7 +238,7 @@ export default function Rides() {
     try {
       let error;
 
-      if (editingRide) {
+      if (editingRide && !showDrafts) {
         const res = await rideService.update(editingRide.id!, payload);
 
         error = res.error;
@@ -299,6 +308,23 @@ export default function Rides() {
     const drafts = await LocalDB.getAll("rides");
 
     setRides(drafts);
+  }
+
+  async function deleteDraft(id: string) {
+    await confirmDelete({
+      title: "Delete Ride Draft",
+      message: "Are you sure you want to delete this ride draft?",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+      onConfirm: async () => {
+        await LocalDB.remove("rides", id);
+
+        toast.success("Draft deleted");
+
+        setShowDrafts(false);
+        fetchRides();
+      },
+    });
   }
 
   const filteredRides = useMemo(() => {
@@ -392,8 +418,12 @@ export default function Rides() {
 
             <GenericFormModal
               config={rideFormConfig}
-              title={editingRide ? "Edit Ride Entry" : "Add Ride Entry"}
-              submitLabel={editingRide ? "Update" : "Save"}
+              title={
+                editingRide && !showDrafts
+                  ? "Edit Ride Entry"
+                  : "Add Ride Entry"
+              }
+              submitLabel={editingRide && !showDrafts ? "Update" : "Save"}
               initialData={initialForm}
               editingData={editingRide || undefined}
               errors={errors}
@@ -490,11 +520,18 @@ export default function Rides() {
                 </p>
               </div>
 
-              <div className="col-span-2">
+              <div>
                 <p className="text-xs text-gray-400">Extra Amount</p>
 
-                <p className="font-semibold text-indigo-600">
+                <p className="font-medium text-gray-700">
                   ₹{Number(ride.extra_amount || 0).toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">Shift</p>
+
+                <p className="font-medium text-gray-700 capitalize">
+                  {ride.shift_sessions?.shift || "--"}
                 </p>
               </div>
             </div>
@@ -514,7 +551,13 @@ export default function Rides() {
                 </button>
 
                 <button
-                  onClick={() => deleteRide(ride.id || "")}
+                  onClick={() => {
+                    if (showDrafts) {
+                      deleteDraft(ride.id || "");
+                      return;
+                    }
+                    deleteRide(ride.id || "");
+                  }}
                   className="rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:cursor-pointer hover:bg-red-100"
                 >
                   Delete
