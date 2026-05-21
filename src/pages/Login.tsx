@@ -131,9 +131,9 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-4 sm:overflow-hidden">
-      <div className="flex w-full max-w-md flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl sm:max-h-[95vh]">
-        {/* Header */}
+    <div className="flex min-h-[100dvh] items-center justify-center bg-gray-100 px-4 py-4 overflow-y-auto">
+      <div className="flex w-full max-w-md flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl max-h-[calc(100dvh-2rem)]">
+        {" "}
         <div className="shrink-0 bg-black px-6 py-6 text-white">
           <div className="mb-3 flex items-center justify-center">
             <div className="rounded-2xl bg-white/10 p-3 backdrop-blur">
@@ -147,10 +147,7 @@ const Login = () => {
             Track rides, fuel, shifts and transactions easily
           </p>
         </div>
-
-        {/* Body */}
         <div className="flex min-h-0 flex-1 flex-col p-6">
-          {/* Tabs */}
           <div className="mb-5 flex shrink-0 rounded-xl bg-gray-100 p-1">
             <button
               onClick={() => setMode("login")}

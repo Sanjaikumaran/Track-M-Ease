@@ -187,7 +187,6 @@ const AppLayout = () => {
             </div>
           </div>
 
-          {/* PROFILE */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen((prev) => !prev)}
