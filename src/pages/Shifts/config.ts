@@ -101,10 +101,10 @@ const shiftSummaryConfig: SummaryCardConfig[] = [
     color: "green",
   },
   {
-    label: "Average Distance",
-    key: "averageDistance",
+    label: "Average Speed",
+    key: "averageSpeed",
     cardIcon: Gauge,
-    formatter: (value: number | string) => `${Number(value).toFixed(2)} KM`,
+    formatter: (value: number | string) => `${Number(value).toFixed(2)} KM/h`,
     color: "orange",
   },
 

@@ -169,7 +169,7 @@ const AppLayout = () => {
       </aside>
 
       <div className="lg:ml-72">
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-white px-5 py-3.5 shadow-sm">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-white px-5 py-[11px] shadow-sm">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}

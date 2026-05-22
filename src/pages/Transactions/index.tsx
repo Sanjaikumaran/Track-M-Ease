@@ -510,9 +510,15 @@ const Transactions = () => {
 
             <div className="grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-3 text-sm">
               <div>
-                <p className="text-xs text-gray-400">Date & Time</p>
+                <p className="text-xs text-gray-400">Date</p>
                 <p className="font-medium text-gray-700">
-                  {formatDate(t.transaction_date)}{" "}
+                  {formatDate(t.transaction_date)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-400">Time</p>
+                <p className="font-medium text-gray-700 capitalize">
                   {formatTime12Hour(t.transaction_time) || "-"}
                 </p>
               </div>
@@ -527,13 +533,6 @@ const Transactions = () => {
               </div>
 
               <div>
-                <p className="text-xs text-gray-400">Payment Method</p>
-                <p className="font-medium text-gray-700 capitalize">
-                  {t.payment_method || "-"}
-                </p>
-              </div>
-
-              <div>
                 <p className="text-xs text-gray-400">Reason</p>
                 <p className="font-medium text-gray-700 capitalize">
                   {t.reason || "-"}
@@ -541,6 +540,32 @@ const Transactions = () => {
               </div>
             </div>
 
+            <div className="flex items-center justify-between gap-2">
+              <span className="capitalize rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                {t.payment_method || "Upi"}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setEditingTransaction(t)}
+                  className="hover:cursor-pointer rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600 transition hover:bg-blue-100"
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (showDrafts) {
+                      deleteDraft(t.id || "");
+                      return;
+                    }
+                    deleteTransaction(t.id || "");
+                  }}
+                  className="hover:cursor-pointer rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
             {t.remarks && (
               <div className="border-t border-gray-100 pt-3">
                 <p className="text-sm leading-relaxed text-gray-600">
@@ -548,28 +573,6 @@ const Transactions = () => {
                 </p>
               </div>
             )}
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setEditingTransaction(t)}
-                className="hover:cursor-pointer rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600 transition hover:bg-blue-100"
-              >
-                Edit
-              </button>
-
-              <button
-                onClick={() => {
-                  if (showDrafts) {
-                    deleteDraft(t.id || "");
-                    return;
-                  }
-                  deleteTransaction(t.id || "");
-                }}
-                className="hover:cursor-pointer rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100"
-              >
-                Delete
-              </button>
-            </div>
           </div>
         ))}
       </List>

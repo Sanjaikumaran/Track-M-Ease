@@ -36,6 +36,7 @@ interface ShiftSession {
   shift_start_time?: string;
   shift_end_time?: string;
   remarks?: string;
+  rides_count?: number;
   user_id?: string;
   last_updated_at?: string;
 }
@@ -313,6 +314,16 @@ const ShiftSessions = () => {
     });
   }, [sessions, appliedFilters]);
 
+  const sessionsWithDistance = useMemo(() => {
+    return filteredSessions.map((session) => ({
+      ...session,
+      average_speed: session.total_distance
+        ? Number(session.total_distance) /
+          calculateHours(session.shift_start_time, session.shift_end_time)
+        : 0,
+    }));
+  }, [filteredSessions]);
+
   const summary = useMemo(() => {
     const result = filteredSessions.reduce(
       (acc, session) => {
@@ -330,13 +341,13 @@ const ShiftSessions = () => {
       {
         totalShifts: 0,
         totalDistance: 0,
-        averageDistance: 0,
+        averageSpeed: 0,
         totalHours: 0,
       },
     );
 
-    result.averageDistance =
-      result.totalShifts > 0 ? result.totalDistance / result.totalShifts : 0;
+    result.averageSpeed =
+      result.totalShifts > 0 ? result.totalDistance / result.totalHours : 0;
 
     return result;
   }, [filteredSessions]);
@@ -400,7 +411,7 @@ const ShiftSessions = () => {
           },
         ]}
       >
-        {filteredSessions.map((session) => (
+        {sessionsWithDistance.map((session) => (
           <div
             key={session.id}
             className="space-y-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition hover:shadow-md"
@@ -447,25 +458,26 @@ const ShiftSessions = () => {
               </div>
 
               <div>
-                <p className="text-xs text-gray-400">Start KM</p>
+                <p className="text-xs text-gray-400">Rides</p>
 
                 <p className="font-medium text-gray-700">
-                  {Number(session.start_km || 0).toFixed(2)}
+                  {session.rides_count || 0}
                 </p>
               </div>
 
               <div>
-                <p className="text-xs text-gray-400">End KM</p>
+                <p className="text-xs text-gray-400">Average Speed</p>
 
                 <p className="font-medium text-gray-700">
-                  {Number(session.end_km || 0).toFixed(2)}
+                  {Number(session.average_speed || 0).toFixed(2)} KM/h
                 </p>
               </div>
             </div>
 
             <div className="flex items-center justify-between gap-3">
-              <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold capitalize text-indigo-700">
-                {session.shift}
+              <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                {Number(session.start_km || 0).toFixed(2)} →&nbsp;
+                {Number(session.end_km || 0).toFixed(2)} KM
               </span>
 
               <div className="flex items-center gap-2">
