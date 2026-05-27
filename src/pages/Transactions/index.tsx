@@ -323,24 +323,63 @@ const Transactions = () => {
   }, [transactions]);
 
   const fromToOptions = useMemo(() => {
+    const category =
+      draftFilters.category?.toLowerCase() || formData.category?.toLowerCase();
+
+    const subcategory =
+      draftFilters.subcategory?.toLowerCase() ||
+      formData.subcategory?.toLowerCase();
+
+    if (!category) return [];
+
     return [
       ...new Set(
         transactions
+          .filter(
+            (t) =>
+              t.category?.toLowerCase() === category?.toLowerCase() &&
+              t.subcategory?.toLowerCase() === subcategory?.toLowerCase(),
+          )
           .map((t) => t.from_to?.trim().toLowerCase())
           .filter((v): v is string => Boolean(v)),
       ),
     ].sort();
-  }, [transactions]);
+  }, [
+    transactions,
+    formData.category,
+    draftFilters.category,
+    formData.subcategory,
+    draftFilters.subcategory,
+  ]);
 
   const reasons = useMemo(() => {
+    const category =
+      draftFilters.category?.toLowerCase() || formData.category?.toLowerCase();
+
+    const subcategory =
+      draftFilters.subcategory?.toLowerCase() ||
+      formData.subcategory?.toLowerCase();
+
+    if (!category) return [];
     return [
       ...new Set(
         transactions
+          .filter(
+            (t) =>
+              t.category?.toLowerCase() === category?.toLowerCase() &&
+              t.subcategory?.toLowerCase() === subcategory?.toLowerCase(),
+          )
           .map((t) => t.reason?.trim().toLowerCase())
           .filter((v): v is string => Boolean(v)),
       ),
     ].sort();
-  }, [transactions]);
+  }, [
+    transactions,
+    formData.category,
+    draftFilters.category,
+    formData.subcategory,
+    draftFilters.subcategory,
+  ]);
 
   const formConfig = useMemo(() => {
     return transactionFormConfig.map((field) => {
