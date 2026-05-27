@@ -334,11 +334,12 @@ const Rides = () => {
     return rides.filter((ride) => {
       const rideTypeMatch =
         appliedFilters.rideType === "all" ||
-        ride.ride_type === appliedFilters.rideType;
+        ride.ride_type?.toLowerCase() === appliedFilters.rideType.toLowerCase();
 
       const shiftMatch =
         appliedFilters.shift === "all" ||
-        ride.shift_sessions?.shift === appliedFilters.shift.toLowerCase();
+        ride.shift_sessions?.shift?.toLowerCase() ===
+          appliedFilters.shift.toLowerCase();
 
       const startDateMatch =
         !appliedFilters.startDate || ride.ride_date >= appliedFilters.startDate;
@@ -549,7 +550,7 @@ const Rides = () => {
 
             <div className="flex items-center justify-between gap-3">
               <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
-                {Number(ride.start_km || 0).toFixed(2)} →nbsp;
+                {Number(ride.start_km || 0).toFixed(2)} →&nbsp;
                 {Number(ride.end_km || 0).toFixed(2)} KM
               </span>
 

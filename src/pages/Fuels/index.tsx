@@ -25,6 +25,8 @@ type FuelEntry = {
   remarks: string | null;
   user_id?: string | null;
   last_updated_at?: string | null;
+  travelled_km?: number | null;
+  mileage_per_litre?: number | null;
 };
 
 type FilterState = {
@@ -91,8 +93,37 @@ const FuelPage = () => {
         toast.error(error.message);
         return;
       }
+      const sorted = [...data].sort(
+        (a, b) =>
+          new Date(`${a.fuel_date}T${a.fuel_time || "00:00"}`).getTime() -
+          new Date(`${b.fuel_date}T${b.fuel_time || "00:00"}`).getTime(),
+      );
 
-      setFuelEntries(data || []);
+      const result = sorted.map((entry, i) => {
+        if (i === 0) {
+          return {
+            ...entry,
+            travelled_km: null,
+            mileage_per_litre: null,
+          };
+        }
+
+        const prev = sorted[i - 1];
+
+        const travelled = Number(entry.odometer_km) - Number(prev.odometer_km);
+
+        const mileage =
+          prev.litres > 0 ? travelled / Number(entry.litres) : null;
+
+        return {
+          ...entry,
+          travelled_km: travelled > 0 ? travelled : null,
+          mileage_per_litre: mileage && mileage > 0 ? mileage : null,
+        };
+      });
+      const displayData = result.reverse();
+
+      setFuelEntries(displayData);
     } catch (err: unknown) {
       toast.error(`${err || "Failed to fetch fuel entries"}`);
     } finally {
@@ -124,11 +155,17 @@ const FuelPage = () => {
     if (Number(data.amount) <= 0) err.amount = "Amount must be > 0";
     if (Number(data.odometer_km) <= 0) err.odometer_km = "KM must be > 0";
 
+    if (Number(data.odometer_km) > 999999)
+      err.odometer_km = "KM seems too high";
+
     const latest = fuelEntries[0];
 
     if (!editingFuel && latest?.odometer_km) {
       if (Number(data.odometer_km) <= Number(latest.odometer_km)) {
-        err.odometer_km = "KM must be greater than previous entry";
+        err.odometer_km =
+          "KM must be greater than previous entry (" +
+          latest.odometer_km +
+          " KM)";
       }
     }
 
@@ -155,7 +192,7 @@ const FuelPage = () => {
     try {
       let error;
 
-      if (editingFuel) {
+      if (editingFuel && !showDrafts) {
         const res = await fuelService.update(editingFuel.id!, payload);
         error = res.error;
       } else {
@@ -260,40 +297,8 @@ const FuelPage = () => {
     });
   }, [fuelEntries, appliedFilters]);
 
-  const fuelWithMileage = useMemo(() => {
-    const sorted = [...filteredFuelEntries].sort(
-      (a, b) =>
-        new Date(`${a.fuel_date}T${a.fuel_time || "00:00"}`).getTime() -
-        new Date(`${b.fuel_date}T${b.fuel_time || "00:00"}`).getTime(),
-    );
-
-    const result = sorted.map((entry, i) => {
-      if (i === 0) {
-        return {
-          ...entry,
-          travelled_km: null,
-          mileage_per_litre: null,
-        };
-      }
-
-      const prev = sorted[i - 1];
-
-      const travelled = Number(entry.odometer_km) - Number(prev.odometer_km);
-
-      const mileage = prev.litres > 0 ? travelled / Number(entry.litres) : null;
-
-      return {
-        ...entry,
-        travelled_km: travelled > 0 ? travelled : null,
-        mileage_per_litre: mileage && mileage > 0 ? mileage : null,
-      };
-    });
-
-    return result.reverse();
-  }, [filteredFuelEntries]);
-
   const summary = useMemo(() => {
-    return fuelWithMileage.reduce(
+    return filteredFuelEntries.reduce(
       (acc, f) => {
         acc.totalFuelCost += Number(f.amount || 0);
         acc.totalLitres += Number(f.litres || 0);
@@ -310,10 +315,12 @@ const FuelPage = () => {
         totalTravelledKm: 0,
       },
     );
-  }, [fuelWithMileage]);
+  }, [filteredFuelEntries]);
 
   const averageMileage =
-    summary.totalTravelledKm > 0 && summary.totalLitres ? summary.totalTravelledKm / summary.totalLitres : 0;
+    summary.totalTravelledKm > 0 && summary.totalLitres
+      ? summary.totalTravelledKm / summary.totalLitres
+      : 0;
 
   return (
     <div className="space-y-4 p-4">
@@ -370,7 +377,7 @@ const FuelPage = () => {
 
       <List
         header="Fuel History"
-        items={fuelWithMileage}
+        items={filteredFuelEntries}
         loading={loading}
         actions={[
           {
@@ -380,7 +387,7 @@ const FuelPage = () => {
           },
         ]}
       >
-        {fuelWithMileage.map((fuel) => (
+        {filteredFuelEntries.map((fuel) => (
           <div
             key={fuel.id}
             className="space-y-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition hover:shadow-md"

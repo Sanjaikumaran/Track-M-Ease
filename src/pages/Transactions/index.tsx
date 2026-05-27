@@ -101,6 +101,7 @@ const Transactions = () => {
     useState<Transaction | null>(null);
   const [errors, setErrors] = useState(initialErrors);
 
+  const [drafts, setDrafts] = useState<Transaction[]>([]);
   const [draftFilters, setDraftFilters] = useState<FilterState>(initialFilters);
   const [appliedFilters, setAppliedFilters] =
     useState<FilterState>(initialFilters);
@@ -160,9 +161,10 @@ const Transactions = () => {
       reason: data.reason?.toLowerCase(),
     };
 
-    const { error } = editingTransaction
-      ? await service.update(editingTransaction.id!, payload)
-      : await service.create(payload);
+    const { error } =
+      editingTransaction && !showDrafts
+        ? await service.update(editingTransaction.id!, payload)
+        : await service.create(payload);
 
     if (error) {
       toast.error(error.message);
@@ -212,14 +214,14 @@ const Transactions = () => {
 
     await LocalDB.create("transactions", draft);
 
-    toast.success("saveTransactiond as draft");
+    toast.success("Saved as draft");
   };
 
   const getAllDrafts = async () => {
     setShowDrafts(true);
     const drafts = await LocalDB.getAll("transactions");
 
-    setTransactions(drafts || []);
+    setDrafts(drafts || []);
   };
 
   const deleteDraft = async (id: string) => {
@@ -240,7 +242,8 @@ const Transactions = () => {
   };
 
   const filtered = useMemo(() => {
-    return transactions.filter((t) => {
+    const data = showDrafts ? drafts : transactions;
+    return data.filter((t) => {
       const f = appliedFilters;
 
       return (
@@ -249,16 +252,22 @@ const Transactions = () => {
         (!f.endDate || t.transaction_date <= f.endDate) &&
         (!f.minAmount || t.amount >= Number(f.minAmount)) &&
         (!f.maxAmount || t.amount <= Number(f.maxAmount)) &&
-        (!f.category || t.category?.includes(f.category.toLowerCase())) &&
+        (!f.category ||
+          t.category?.toLowerCase()?.includes(f.category.toLowerCase())) &&
         (!f.subcategory ||
-          t.subcategory?.includes(f.subcategory.toLowerCase())) &&
-        (!f.from_to || t.from_to?.includes(f.from_to.toLowerCase())) &&
+          t.subcategory
+            ?.toLowerCase()
+            ?.includes(f.subcategory.toLowerCase())) &&
+        (!f.from_to ||
+          t.from_to?.toLowerCase()?.includes(f.from_to.toLowerCase())) &&
         (!f.payment_method ||
-          t.payment_method?.includes(f.payment_method.toLowerCase())) &&
-        (!f.reason || t.reason?.includes(f.reason.toLowerCase()))
+          t.payment_method
+            ?.toLowerCase()
+            ?.includes(f.payment_method.toLowerCase())) &&
+        (!f.reason || t.reason?.toLowerCase()?.includes(f.reason.toLowerCase()))
       );
     });
-  }, [transactions, appliedFilters]);
+  }, [transactions, appliedFilters, showDrafts, drafts]);
 
   const summary = useMemo(() => {
     return filtered.reduce(

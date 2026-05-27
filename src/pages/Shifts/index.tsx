@@ -170,6 +170,10 @@ const ShiftSessions = () => {
       newErrors.remarks = "Remarks cannot exceed 300 characters";
     }
 
+    if (Number(data.start_km || 0) < sessions[0].end_km!) {
+      newErrors.start_km = `Start KM cannot be less than last recorded KM (${sessions[0]?.end_km})`;
+    }
+
     setErrors(newErrors);
 
     return !Object.values(newErrors).some(Boolean);
@@ -196,7 +200,7 @@ const ShiftSessions = () => {
     try {
       let error;
 
-      if (editingSession) {
+      if (editingSession && !showDrafts) {
         const res = await shiftService.update(editingSession.id!, payload);
 
         error = res.error;
