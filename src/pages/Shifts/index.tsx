@@ -58,7 +58,7 @@ const initialForm: ShiftSession = {
   shift: getShiftByTime(),
   start_km: 0,
   end_km: 0,
-  shift_start_time: "",
+  shift_start_time: new Date().toTimeString().slice(0, 5),
   shift_end_time: "",
   remarks: "",
 };
@@ -322,8 +322,9 @@ const ShiftSessions = () => {
     return filteredSessions.map((session) => ({
       ...session,
       average_speed: session.total_distance
-        ? Number(session.total_distance) /
-          calculateHours(session.shift_start_time, session.shift_end_time)
+        ? Number(session.total_distance || 0) /
+            calculateHours(session.shift_start_time, session.shift_end_time) ||
+          0
         : 0,
     }));
   }, [filteredSessions]);
@@ -353,6 +354,9 @@ const ShiftSessions = () => {
     result.averageSpeed =
       result.totalShifts > 0 ? result.totalDistance / result.totalHours : 0;
 
+    if (isNaN(result.averageSpeed) || !isFinite(result.averageSpeed)) {
+      result.averageSpeed = 0;
+    }
     return result;
   }, [filteredSessions]);
   return (
@@ -381,7 +385,7 @@ const ShiftSessions = () => {
                   ? "Edit Shift Session"
                   : "Add Shift Session"
               }
-              initialData={initialForm}
+              initialData={{ ...initialForm, start_km: sessions?.[0]?.end_km }}
               editingData={editingSession || undefined}
               errors={errors}
               onSubmit={saveSession}

@@ -50,7 +50,7 @@ const getShiftByTime = () => {
 };
 
 const calculateHours = (start?: string, end?: string) => {
-  if (!start || !end) {
+  if (!start?.trim() || !end?.trim()) {
     return 0;
   }
 

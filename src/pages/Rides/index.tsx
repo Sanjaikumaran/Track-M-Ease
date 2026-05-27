@@ -74,7 +74,7 @@ const initialForm: RideEntry = {
   extra_amount: 0,
   start_km: 0,
   end_km: 0,
-  ride_start_time: "",
+  ride_start_time: new Date().toTimeString().slice(0, 5),
   ride_end_time: "",
   remarks: "",
 };
@@ -205,6 +205,31 @@ const Rides = () => {
       Number(data.end_km) < Number(data.start_km)
     ) {
       newErrors.end_km = "End KM must be greater than Start KM";
+    }
+
+    if (data.ride_start_time && data.ride_end_time) {
+      if (Number(data.ride_end_time) < Number(data.ride_start_time)) {
+        newErrors.ride_end_time = "End time must be greater than start time";
+      }
+    }
+
+    const latest = rides[0];
+
+    if (!editingRide && latest?.ride_end_time && data.ride_start_time) {
+      if (data.ride_start_time < latest.ride_end_time) {
+        newErrors.ride_start_time =
+          "Start time must be greater than previous entry (" +
+          latest.ride_end_time +
+          ")";
+      }
+    }
+    if (!editingRide && latest?.end_km) {
+      if (Number(data.start_km) <= Number(latest.end_km)) {
+        newErrors.start_km =
+          "Start KM must be greater than previous entry (" +
+          latest.end_km +
+          ")";
+      }
     }
 
     if (data.remarks && data.remarks.length > 300) {

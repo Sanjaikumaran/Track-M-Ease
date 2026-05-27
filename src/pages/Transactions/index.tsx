@@ -55,6 +55,7 @@ type FilterState = {
 
 const initialForm: Transaction = {
   transaction_date: new Date().toISOString().split("T")[0],
+  transaction_time: new Date().toTimeString().slice(0, 5),
   type: "expense",
   amount: 0,
   category: "",
@@ -83,6 +84,7 @@ const initialErrors: Record<string, string> = {
   type: "",
   amount: "",
   category: "",
+  payment_method: "",
 };
 
 const Transactions = () => {
@@ -136,9 +138,11 @@ const Transactions = () => {
   const validate = (data: Transaction) => {
     const err = { ...initialErrors };
 
-    if (!data.transaction_date) err.transaction_date = "Required";
-    if (!data.type) err.type = "Required";
-    if (!data.category) err.category = "Required";
+    if (!data.transaction_date)
+      err.transaction_date = "Transaction date is required";
+    if (!data.type) err.type = "Type is required";
+    if (!data.category) err.category = "Category is required";
+    if (!data.payment_method) err.payment_method = "Payment method is required";
     if (!data.amount || data.amount <= 0) err.amount = "Invalid amount";
 
     setErrors(err);

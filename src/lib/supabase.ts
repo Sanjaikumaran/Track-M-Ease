@@ -64,9 +64,8 @@ class SupabaseService<T extends BaseEntity> {
     const payload = {
       ...data,
       user_id: userId,
-      id: undefined, // Ensure id is not set, allowing Supabase to auto-generate it
+      id: undefined,
     };
-    console.log("Creating entry in", this.tableName, "with payload:", payload);
     return await supabase.from(this.tableName).insert(payload as T);
   }
 
