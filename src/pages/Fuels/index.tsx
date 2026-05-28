@@ -63,8 +63,8 @@ const initialErrors = {
   amount: "",
 };
 
+const fuelService = new SupabaseService<FuelEntry>("fuel_entries");
 const FuelPage = () => {
-  const fuelService = new SupabaseService<FuelEntry>("fuel_entries");
   const toast = useToast();
   const { confirmDelete } = useDeleteConfirmation();
 
@@ -85,6 +85,7 @@ const FuelPage = () => {
 
     try {
       const { data, error } = await fuelService.getAll(
+        false,
         ["fuel_date", "fuel_time"],
         "desc",
       );

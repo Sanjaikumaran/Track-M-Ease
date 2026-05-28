@@ -81,9 +81,8 @@ const initialErrors = {
   remarks: "",
 };
 
+const shiftService = new SupabaseService<ShiftSession>("shift_sessions");
 const ShiftSessions = () => {
-  const shiftService = new SupabaseService<ShiftSession>("shift_sessions");
-
   const toast = useToast();
 
   const { confirmDelete } = useDeleteConfirmation();
@@ -106,6 +105,7 @@ const ShiftSessions = () => {
 
     try {
       const { data, error } = await shiftService.getAll(
+        false,
         ["shift_date", "shift_start_time"],
         "desc",
       );

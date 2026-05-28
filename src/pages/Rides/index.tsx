@@ -105,8 +105,9 @@ const initialErrors = {
   remarks: "",
 };
 
+const rideService = new SupabaseService<RideEntry>("ride_entries");
+
 const Rides = () => {
-  const rideService = new SupabaseService<RideEntry>("ride_entries");
   const toast = useToast();
   const { confirmDelete } = useDeleteConfirmation();
 
@@ -126,6 +127,7 @@ const Rides = () => {
 
     try {
       const { data, error } = await rideService.getAll(
+        false,
         ["ride_date", "ride_start_time"],
         "desc",
         ["*", "shift_sessions(id, shift)"],

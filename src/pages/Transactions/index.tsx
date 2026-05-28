@@ -87,9 +87,8 @@ const initialErrors: Record<string, string> = {
   payment_method: "",
 };
 
+const service = new SupabaseService<Transaction>("transactions");
 const Transactions = () => {
-  const service = new SupabaseService<Transaction>("transactions");
-
   const toast = useToast();
   const { confirmDelete } = useDeleteConfirmation();
 
@@ -114,6 +113,7 @@ const Transactions = () => {
     setShowDrafts(false);
 
     const { data, error } = await service.getAll(
+      false,
       ["transaction_date", "transaction_time"],
       "desc",
     );
