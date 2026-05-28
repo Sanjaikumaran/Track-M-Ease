@@ -150,7 +150,7 @@ const Transactions = () => {
   };
 
   const saveTransaction = async (data: Transaction) => {
-    if (!validate(data)) return;
+    if (!validate(data)) return false;
 
     if (showDrafts && editingTransaction) {
       await LocalDB.remove("transactions", editingTransaction.id!);

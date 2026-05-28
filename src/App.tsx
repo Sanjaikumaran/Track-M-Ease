@@ -3,7 +3,7 @@ import { Route, Routes } from "react-router-dom";
 
 import type { Session } from "@supabase/supabase-js";
 
-import { supabase } from "./lib/supabase";
+import { supabase } from "./lib/supabase.config";
 
 import AppLayout from "./layouts/AppLayout";
 

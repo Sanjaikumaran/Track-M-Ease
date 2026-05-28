@@ -14,7 +14,7 @@ import {
 
 import { useEffect, useRef, useState } from "react";
 
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabase.config";
 
 import Button from "../components/ui/button";
 import type { User } from "@supabase/supabase-js";

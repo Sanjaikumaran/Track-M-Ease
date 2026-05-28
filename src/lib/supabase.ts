@@ -1,9 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "./supabase.config";
 
 type BaseEntity = {
   id?: string;
@@ -33,7 +28,7 @@ class SupabaseService<T extends BaseEntity> {
     sortOrder: "asc" | "desc" = "desc",
     selectFields: string[] = [],
   ) {
-    if (this.cache?.length && !forceRefresh) {
+    if (this.cache.length && !forceRefresh) {
       return {
         data: this.cache,
         error: null,
@@ -57,13 +52,13 @@ class SupabaseService<T extends BaseEntity> {
     this.cache = (response.data ?? []) as unknown as T[];
 
     return {
-      data: this.cache || [],
+      data: this.cache,
       error: response.error,
     };
   }
 
   async getById(id: string) {
-    if (this.cache) {
+    if (this.cache.length) {
       const item = this.cache.find((x) => x.id === id);
 
       if (item) {
@@ -96,8 +91,8 @@ class SupabaseService<T extends BaseEntity> {
       .select()
       .single();
 
-    if (this.cache && response.data) {
-      this.cache.unshift(response.data as T);
+    if (response.data) {
+      this.cache.unshift(response.data as unknown as T);
     }
 
     return response;
@@ -111,9 +106,9 @@ class SupabaseService<T extends BaseEntity> {
       .select()
       .single();
 
-    if (this.cache && response.data) {
+    if (response.data) {
       this.cache = this.cache.map((item) =>
-        item.id === id ? (response.data as T) : item,
+        item.id === id ? (response.data as unknown as T) : item,
       );
     }
 
@@ -123,9 +118,7 @@ class SupabaseService<T extends BaseEntity> {
   async delete(id: string) {
     const response = await supabase.from(this.tableName).delete().eq("id", id);
 
-    if (this.cache) {
-      this.cache = this.cache.filter((item) => item.id !== id);
-    }
+    this.cache = this.cache.filter((item) => item.id !== id);
 
     return response;
   }
@@ -136,4 +129,3 @@ class SupabaseService<T extends BaseEntity> {
 }
 
 export default SupabaseService;
-export { supabase };

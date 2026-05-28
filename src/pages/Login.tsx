@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Receipt, MailCheck, ShieldCheck } from "lucide-react";
 
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabase.config";
 
 import { useToast } from "../context/toast";
 
