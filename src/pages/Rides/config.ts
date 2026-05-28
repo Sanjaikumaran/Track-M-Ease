@@ -1,4 +1,11 @@
-import { IndianRupee, Car, Route, Percent, Plus, Wallet } from "lucide-react";
+import {
+  IndianRupee,
+  Motorbike,
+  Route,
+  Percent,
+  Wallet,
+  HandCoins,
+} from "lucide-react";
 
 import type { SummaryCardConfig } from "../../components/summaryCard";
 import type { FormFieldConfig } from "../../components/form";
@@ -136,6 +143,13 @@ const rideSummaryConfig: SummaryCardConfig[] = [
     color: "green",
   },
   {
+    label: "Ride Earnings",
+    key: "rideEarnings",
+    cardIcon: Motorbike,
+    formatter: (value: number | string) => `₹${Number(value).toFixed(2)}`,
+    color: "blue",
+  },
+  {
     label: "Commission",
     key: "totalCommission",
     cardIcon: Percent,
@@ -145,7 +159,7 @@ const rideSummaryConfig: SummaryCardConfig[] = [
   {
     label: "Extra Amount",
     key: "totalExtra",
-    cardIcon: Plus,
+    cardIcon: HandCoins,
     formatter: (value: number | string) => `₹${Number(value).toFixed(2)}`,
     color: "indigo",
   },
@@ -156,13 +170,7 @@ const rideSummaryConfig: SummaryCardConfig[] = [
     formatter: (value: number | string) => `₹${Number(value).toFixed(2)}`,
     color: "purple",
   },
-  {
-    label: "Total Rides",
-    key: "totalRides",
-    cardIcon: Car,
-    formatter: (value: number | string) => `${Number(value)} rides`,
-    color: "blue",
-  },
+
   {
     label: "Total KM",
     key: "totalKm",

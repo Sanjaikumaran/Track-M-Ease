@@ -215,7 +215,12 @@ const Rides = () => {
 
     const latest = rides[0];
 
-    if (!editingRide && latest?.ride_end_time && data.ride_start_time) {
+    if (
+      !editingRide &&
+      data.ride_date === latest.ride_date &&
+      latest?.ride_end_time &&
+      data.ride_start_time
+    ) {
       if (data.ride_start_time < latest.ride_end_time) {
         newErrors.ride_start_time =
           "Start time must be greater than previous entry (" +
@@ -333,8 +338,12 @@ const Rides = () => {
 
   const getAllDrafts = async () => {
     setShowDrafts(true);
-    const drafts = await LocalDB.getAll("rides");
-
+    const drafts: RideEntry[] = await LocalDB.getAll("rides");
+    drafts.forEach((ride) => {
+      ride.net_profit =
+        ride.earning - Number(ride.commission) + Number(ride.extra_amount);
+      ride.distance = Number(ride.end_km) - Number(ride.start_km);
+    });
     setRides(drafts);
   };
 
@@ -406,7 +415,7 @@ const Rides = () => {
   const summary = useMemo(() => {
     return filteredRides.reduce(
       (acc, ride) => {
-        acc.totalEarnings += Number(ride.earning || 0);
+        acc.rideEarnings += Number(ride.earning || 0);
 
         acc.totalCommission += Number(ride.commission || 0);
 
@@ -416,7 +425,8 @@ const Rides = () => {
 
         acc.totalKm += Number(ride.distance || 0);
 
-        acc.totalRides += 1;
+        acc.totalEarnings +=
+          Number(ride.earning || 0) + Number(ride.extra_amount || 0);
 
         return acc;
       },
@@ -426,7 +436,7 @@ const Rides = () => {
         totalExtra: 0,
         netProfit: 0,
         totalKm: 0,
-        totalRides: 0,
+        rideEarnings: 0,
       },
     );
   }, [filteredRides]);
@@ -479,7 +489,7 @@ const Rides = () => {
             totalCommission: summary.totalCommission,
             totalExtra: summary.totalExtra,
             netProfit: summary.netProfit,
-            totalRides: summary.totalRides,
+            rideEarnings: summary.rideEarnings,
             totalKm: summary.totalKm,
           }}
           cols={3}
