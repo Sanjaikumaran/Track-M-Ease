@@ -10,6 +10,7 @@ import {
   LogOut,
   User as UserIcon,
   ChevronDown,
+  Briefcase,
 } from "lucide-react";
 
 import { useEffect, useRef, useState } from "react";
@@ -90,6 +91,12 @@ const AppLayout = () => {
       path: "/shifts",
       icon: BellElectric,
       subHeader: "Manage your shift sessions",
+    },
+    {
+      label: "Attendance Config",
+      path: "/attendance-config",
+      icon: Briefcase,
+      subHeader: "Configure office location and radius",
     },
   ];
 

@@ -1,3 +1,5 @@
+import type { Rule } from "../store/useConfigStore";
+
 const getTimeDifference = (
   start: string | undefined,
   end: string | undefined,
@@ -88,10 +90,50 @@ const formatTime12Hour = (time?: string) => {
   });
 };
 
+const getDistanceMeters = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+) => {
+  const R = 6371e3;
+  const toRad = (x: number) => (x * Math.PI) / 180;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+};
+
+const getInterval = (distance: number, rules: Rule[]) => {
+  const sorted = [...rules].sort((a, b) => b.minDistance - a.minDistance);
+
+  for (const rule of sorted) {
+    if (distance >= rule.minDistance) {
+      return rule.interval;
+    }
+  }
+
+  return 30;
+};
+
+const getAttendanceState = (distance: number, radius: number) => {
+  return distance <= radius ? "inside" : "outside";
+};
+
 export {
   getTimeDifference,
   getShiftByTime,
   calculateHours,
   formatDate,
   formatTime12Hour,
+  getDistanceMeters,
+  getInterval,
+  getAttendanceState,
 };

@@ -7,7 +7,8 @@ type ButtonVariant =
   | "danger"
   | "success"
   | "outline"
-  | "ghost";
+  | "ghost"
+  | "link";
 
 type ButtonSize = "sm" | "md" | "lg";
 
@@ -46,6 +47,8 @@ const Button = ({
         return `border border-gray-300 bg-white text-black hover:bg-gray-100`;
       case "ghost":
         return `bg-transparent text-black hover:bg-gray-100`;
+      case "link":
+        return `text-blue-500 hover:text-blue-700`;
       default:
         return `bg-black text-white hover:bg-gray-800`;
     }

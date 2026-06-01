@@ -1,5 +1,6 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 import type { Session } from "@supabase/supabase-js";
 
@@ -8,7 +9,12 @@ import { supabase } from "./lib/supabase.config";
 import AppLayout from "./layouts/AppLayout";
 
 import Login from "./pages/Login";
-import { Loader2 } from "lucide-react";
+import { Settings } from "./pages/AttendanceConfig";
+
+import { useAttendanceEngine } from "./hooks/useAttendanceEngine";
+import { useConfigStore } from "./store/useConfigStore";
+import { ReminderModal } from "./components/ReminderModal";
+import { useAttendanceStore } from "./store/useAttendanceStore";
 
 const Transactions = lazy(() => import("./pages/Transactions"));
 const Rides = lazy(() => import("./pages/Rides"));
@@ -16,6 +22,15 @@ const Shifts = lazy(() => import("./pages/Shifts"));
 const Fuels = lazy(() => import("./pages/Fuels"));
 
 const App = () => {
+  useAttendanceEngine();
+
+  const hydrateConfig = useConfigStore((s) => s.hydrateConfig);
+  const hydrated = useConfigStore((s) => s.hydrated);
+
+  useEffect(() => {
+    hydrateConfig();
+  }, []);
+
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
@@ -38,6 +53,14 @@ const App = () => {
     return <Login />;
   }
 
+  if (!hydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="animate-spin" size={48} />
+      </div>
+    );
+  }
+
   return (
     <Suspense
       fallback={
@@ -55,6 +78,8 @@ const App = () => {
           <Route path="/fuel" element={<Fuels />} />
 
           <Route path="/shifts" element={<Shifts />} />
+
+          <Route path="/attendance-config" element={<Settings />} />
 
           <Route
             path="*"
@@ -81,8 +106,34 @@ const App = () => {
           />
         </Route>
       </Routes>
+      <AttendanceScreen />
     </Suspense>
   );
 };
+
+function AttendanceScreen() {
+  const { modalOpen, modalMode, closeModal } = useAttendanceStore();
+
+  const { markPresent, markSignOut, snooze } = useAttendanceEngine();
+
+  return (
+    <>
+      <ReminderModal
+        open={modalOpen}
+        mode={modalMode}
+        onComplete={() => {
+          if (modalMode === "present") markPresent();
+          else markSignOut();
+
+          closeModal();
+        }}
+        onSnooze={() => {
+          snooze(20);
+          closeModal();
+        }}
+      />
+    </>
+  );
+}
 
 export default App;
