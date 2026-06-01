@@ -9,25 +9,44 @@ export function useAttendanceEngine() {
 
   const config = useConfigStore((s) => s.config);
 
-  const { state, setState, openModal } = useAttendanceStore();
+  const {
+    state,
+    setState,
+    openModal,
 
-  // memory
-  const snoozeRef = useRef<number | null>(null);
-  const presentRef = useRef(false);
+    presentMarked,
+    presentTime,
+
+    snoozedUntil,
+
+    lastSignOutDate,
+
+    resetDay,
+  } = useAttendanceStore();
+
+  const stateRef = useRef(state);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   const schedule = (seconds: number) => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
 
     timerRef.current = window.setTimeout(() => {
       runRef.current?.();
     }, seconds * 1000);
   };
 
-  const isSnoozed = () =>
-    snoozeRef.current !== null && Date.now() < snoozeRef.current;
+  const isSnoozed = () => {
+    return snoozedUntil !== null && Date.now() < snoozedUntil;
+  };
 
   const isBeforeStart = () => {
     const now = new Date();
+
     const [h, m] = config.startTime.split(":").map(Number);
 
     return now.getHours() < h || (now.getHours() === h && now.getMinutes() < m);
@@ -35,6 +54,7 @@ export function useAttendanceEngine() {
 
   const getMsUntilStart = () => {
     const now = new Date();
+
     const [h, m] = config.startTime.split(":").map(Number);
 
     const start = new Date();
@@ -44,71 +64,75 @@ export function useAttendanceEngine() {
   };
 
   const isAfterWork = () => {
-    const now = new Date();
-    const [h] = config.startTime.split(":").map(Number);
+    if (!presentTime) {
+      return false;
+    }
 
-    const end = new Date();
-    end.setHours(h + config.workHours, 0, 0, 0);
-
-    return now >= end;
+    return Date.now() >= presentTime + config.workHours * 60 * 60 * 1000;
   };
 
   const isWorkingDay = () => {
     const today = new Date()
-      .toLocaleDateString("en-US", { weekday: "short" })
+      .toLocaleDateString("en-US", {
+        weekday: "short",
+      })
       .toLowerCase();
 
     return config.enabledDays.includes(today);
   };
 
-  // ---------------------------
-  // ACTIONS
-  // ---------------------------
-  const snooze = (sec: number) => {
-    snoozeRef.current = Date.now() + sec * 1000;
-  };
-
-  const markPresent = () => {
-    presentRef.current = true;
-    setState("present_done");
-    openModal("signout");
-  };
-
-  const markSignOut = () => {
-    setState("stopped");
-  };
-
-  // ---------------------------
-  // MAIN ENGINE
-  // ---------------------------
   const run = useCallback(async () => {
-    // WAIT UNTIL START
+    const today = new Date().toDateString();
+
+    // Reset next day after signout
+    if (
+      stateRef.current === "stopped" &&
+      lastSignOutDate &&
+      lastSignOutDate !== today
+    ) {
+      resetDay();
+      return;
+    }
+
+    // Wait until office start time
     if (isBeforeStart()) {
       const ms = getMsUntilStart();
+
       schedule(Math.max(ms / 1000, 1));
+
       return;
     }
 
-    // SNOOZE
+    // Snoozed
     if (isSnoozed()) {
-      schedule(20);
+      schedule(config.snoozeUntil);
+
       return;
     }
 
-    // WORK DAY CHECK
+    // Weekend / disabled day
     if (!isWorkingDay()) {
       schedule(3600);
+
       return;
     }
 
-    // AFTER WORK → SIGNOUT
-    if (presentRef.current && isAfterWork()) {
-      if (state !== "signout_pending") {
+    // Already signed out today
+    if (stateRef.current === "stopped") {
+      schedule(3600);
+
+      return;
+    }
+
+    // Signout reminder
+    if (presentMarked && isAfterWork()) {
+      if (stateRef.current !== "signout_pending") {
         setState("signout_pending");
         openModal("signout");
       }
 
       schedule(300);
+
       return;
     }
 
@@ -122,49 +146,67 @@ export function useAttendanceEngine() {
         );
 
         const interval = getInterval(distance, config.rules);
+
         const inside = distance <= config.radius;
-        console.log(
-          "Distance:",
+
+        console.log({
           distance,
-          "meters. Next check in",
+          inside,
           interval,
-          "seconds.",
-        );
-        // INSIDE OFFICE → OPEN PRESENT MODAL
-        if (!presentRef.current && inside) {
+          state: stateRef.current,
+        });
+
+        // Present reminder
+        if (!presentMarked && inside && stateRef.current !== "inside") {
           setState("inside");
           openModal("present");
         }
 
-        if (!inside) setState("outside");
+        if (!inside) {
+          setState("outside");
+        }
 
         schedule(interval);
       },
-      () => {
-        console.log("sdf");
-        schedule(20);
+      (error) => {
+        console.error("Location Error:", error.code, error.message);
+
+        schedule(config.snoozeUntil);
       },
-      { enableHighAccuracy: true },
+      {
+        enableHighAccuracy: true,
+      },
     );
-  }, [config, state]);
+  }, [
+    config,
+    presentMarked,
+    presentTime,
+    snoozedUntil,
+    lastSignOutDate,
+    resetDay,
+    setState,
+    openModal,
+  ]);
 
   useEffect(() => {
     runRef.current = run;
   }, [run]);
 
   useEffect(() => {
-    setState("tracking");
+    if (state === "idle") {
+      setState("tracking");
+    }
+
     run();
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
     };
-  }, [run]);
+  }, [run, setState, state]);
 
   return {
     state,
-    snooze,
-    markPresent,
-    markSignOut,
   };
 }

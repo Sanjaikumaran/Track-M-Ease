@@ -112,27 +112,24 @@ const App = () => {
 };
 
 function AttendanceScreen() {
-  const { modalOpen, modalMode, closeModal } = useAttendanceStore();
+  const { modalOpen, modalMode, markPresent, markSignOut, snooze } =
+    useAttendanceStore();
 
-  const { markPresent, markSignOut, snooze } = useAttendanceEngine();
+  useAttendanceEngine();
 
   return (
-    <>
-      <ReminderModal
-        open={modalOpen}
-        mode={modalMode}
-        onComplete={() => {
-          if (modalMode === "present") markPresent();
-          else markSignOut();
-
-          closeModal();
-        }}
-        onSnooze={() => {
-          snooze(20);
-          closeModal();
-        }}
-      />
-    </>
+    <ReminderModal
+      open={modalOpen}
+      mode={modalMode}
+      onComplete={() => {
+        if (modalMode === "present") {
+          markPresent();
+        } else {
+          markSignOut();
+        }
+      }}
+      onSnooze={() => snooze(20)}
+    />
   );
 }
 

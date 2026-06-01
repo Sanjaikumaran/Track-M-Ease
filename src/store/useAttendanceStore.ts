@@ -1,8 +1,9 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 type ModalMode = "present" | "signout";
 
-type AttendanceState =
+export type AttendanceState =
   | "idle"
   | "tracking"
   | "inside"
@@ -13,22 +14,95 @@ type AttendanceState =
 
 type AttendanceStore = {
   state: AttendanceState;
+
   modalOpen: boolean;
   modalMode: ModalMode;
 
+  presentMarked: boolean;
+  presentTime: number | null;
+
+  snoozedUntil: number | null;
+
+  lastSignOutDate: string | null;
+
   setState: (s: AttendanceState) => void;
+
   openModal: (mode: ModalMode) => void;
   closeModal: () => void;
+
+  markPresent: () => void;
+  markSignOut: () => void;
+
+  snooze: (seconds: number) => void;
+
+  resetDay: () => void;
 };
 
-export const useAttendanceStore = create<AttendanceStore>((set) => ({
-  state: "idle",
-  modalOpen: false,
-  modalMode: "present",
+export const useAttendanceStore = create<AttendanceStore>()(
+  persist(
+    (set) => ({
+      state: "idle",
 
-  setState: (s) => set({ state: s }),
+      modalOpen: false,
+      modalMode: "present",
 
-  openModal: (mode) => set({ modalOpen: true, modalMode: mode }),
+      presentMarked: false,
+      presentTime: null,
 
-  closeModal: () => set({ modalOpen: false }),
-}));
+      snoozedUntil: null,
+
+      lastSignOutDate: null,
+
+      setState: (s) => set({ state: s }),
+
+      openModal: (mode) =>
+        set({
+          modalOpen: true,
+          modalMode: mode,
+        }),
+
+      closeModal: () =>
+        set({
+          modalOpen: false,
+        }),
+
+      markPresent: () =>
+        set({
+          presentMarked: true,
+          presentTime: Date.now(),
+          state: "present_done",
+          modalOpen: false,
+        }),
+
+      markSignOut: () =>
+        set({
+          state: "stopped",
+          modalOpen: false,
+          presentMarked: false,
+          presentTime: null,
+          snoozedUntil: null,
+          lastSignOutDate: new Date().toDateString(),
+        }),
+
+      snooze: (seconds) =>
+        set({
+          modalOpen: false,
+          snoozedUntil: Date.now() + seconds * 1000,
+        }),
+      resetDay: () =>
+        set({
+          state: "tracking",
+
+          presentMarked: false,
+          presentTime: null,
+
+          snoozedUntil: null,
+
+          modalOpen: false,
+        }),
+    }),
+    {
+      name: "attendance-storage",
+    },
+  ),
+);
