@@ -28,6 +28,7 @@ type ErrorState = {
 const Settings = () => {
   const toast = useToast();
 
+  const [loading, setLoading] = useState(false);
   const { config, updateConfig, saveConfig } = useConfigStore();
 
   const [errors, setErrors] = useState<ErrorState>({
@@ -48,29 +49,32 @@ const Settings = () => {
     });
   };
 
-  const useCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocation not supported");
-      return;
+  const useCurrentLocation = async () => {
+    setLoading(true);
+
+    try {
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            resolve,
+            reject,
+            { enableHighAccuracy: true }
+          );
+        }
+      );
+
+      updateConfig({
+        officeLat: position.coords.latitude,
+        officeLng: position.coords.longitude,
+      });
+
+      toast.success("Location updated");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to get location. Enable GPS permission.");
+    } finally {
+      setLoading(false);
     }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        updateConfig({
-          officeLat: pos.coords.latitude,
-          officeLng: pos.coords.longitude,
-        });
-
-        toast.success("Location updated");
-      },
-      (err) => {
-        console.error(err);
-        toast.error("Failed to get location. Enable GPS permission.");
-      },
-      {
-        enableHighAccuracy: true,
-      },
-    );
   };
 
   const addRule = () => {
@@ -169,6 +173,7 @@ const Settings = () => {
   };
 
   const saveSettings = async () => {
+    setLoading(true);
     if (!validate()) {
       toast.error("Please fix validation errors");
       return;
@@ -181,6 +186,9 @@ const Settings = () => {
     } catch (error) {
       console.error(error);
       toast.error("Failed to save settings");
+    }
+    finally {
+      setLoading(false);
     }
   };
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -210,7 +218,7 @@ const Settings = () => {
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-lg">Office Settings</h2>
 
-            <Button variant="link" onClick={useCurrentLocation}>
+            <Button variant="link" loading={loading} disabled={loading} onClick={useCurrentLocation}>
               Use Current Location
             </Button>
           </div>
@@ -380,7 +388,7 @@ const Settings = () => {
         </div>
 
         <div>
-          <Button onClick={saveSettings}>Save Settings</Button>
+          <Button loading={loading} disabled={loading} onClick={saveSettings}>Save Settings</Button>
         </div>
       </div>
     </div>

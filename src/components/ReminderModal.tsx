@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "../context/toast";
 import Button from "./ui/button";
+import { ArrowRight } from "lucide-react";
 
 type ReminderMode = "present" | "signout";
 
@@ -166,14 +167,13 @@ const ReminderModal = ({
           </div>
 
           <div
-            className={`absolute left-1 top-1 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-xl text-white shadow-lg ${
-              dragging ? "" : "transition-transform duration-300"
-            }`}
+            className={`absolute left-1 top-1 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-xl text-white shadow-lg ${dragging ? "" : "transition-transform duration-300"
+              }`}
             style={{
               transform: `translateX(${thumbTranslate}px)`,
             }}
           >
-            →
+            <ArrowRight />
           </div>
         </div>
 
