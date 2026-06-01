@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
 import { useToast } from "../../context/toast";
@@ -183,7 +183,15 @@ const Settings = () => {
       toast.error("Failed to save settings");
     }
   };
+  const [currentTime, setCurrentTime] = useState(new Date());
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -191,6 +199,10 @@ const Settings = () => {
           <h1 className="text-xl sm:text-2xl font-bold">Settings</h1>
           <p className="text-sm text-gray-500">
             Configure your attendance system
+          </p>
+
+          <p className="text-sm text-gray-600 mt-2">
+            {currentTime.toLocaleTimeString()}
           </p>
         </div>
 

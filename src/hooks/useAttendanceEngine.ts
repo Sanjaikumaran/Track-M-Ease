@@ -9,13 +9,12 @@ import {
 
 const useAttendanceEngine = () => {
   const timerRef = useRef<number | null>(null);
-  const runRef = useRef<() => void>(() => {});
+  const runRef = useRef<() => void>(() => { });
 
   const config = useConfigStore((s) => s.config);
 
   const {
     state,
-    setState,
     openModal,
 
     presentMarked,
@@ -30,8 +29,6 @@ const useAttendanceEngine = () => {
   } = useAttendanceStore();
 
   const stateRef = useRef(state);
-  const presentNotificationSentRef = useRef(false);
-  const signoutNotificationSentRef = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
@@ -127,27 +124,20 @@ const useAttendanceEngine = () => {
     }
 
     if (presentMarked && isAfterWork()) {
-      if (stateRef.current !== "signout_pending") {
-        setState("signout_pending");
-        openModal("signout");
+      openModal("signout");
 
-        if (!signoutNotificationSentRef.current) {
-          sendNotification(
-            "Sign Out Required",
-            "Your work hours are completed. Please sign out.",
-          );
-
-          signoutNotificationSentRef.current = true;
-        }
-      }
-
-      schedule(60);
+      sendNotification(
+        "Sign Out Required",
+        "Your work hours are completed. Please sign out.",
+      );
+      schedule(30);
 
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+
         const distance = getDistanceMeters(
           pos.coords.latitude,
           pos.coords.longitude,
@@ -155,37 +145,25 @@ const useAttendanceEngine = () => {
           config.officeLng,
         );
 
-        setCurrentDistance(distance);
+
+
         const interval = getInterval(distance, config.rules);
+        setCurrentDistance(distance);
 
         const inside = distance <= config.radius;
 
-        console.log({
-          distance,
-          inside,
-          interval,
-          state: stateRef.current,
-        });
+        if (inside) {
 
-        if (!presentMarked && inside && stateRef.current !== "inside") {
-          setState("inside");
-          openModal("present");
-
-          if (!presentNotificationSentRef.current) {
+          if (!presentMarked && !isSnoozed()) {
+            openModal("present");
             sendNotification(
               "Attendance Required",
-              "You are near the office. Swipe to mark attendance.",
+              "You are near the office. Swipe to mark attendance."
             );
-
-            presentNotificationSentRef.current = true;
           }
-        }
 
-        if (!inside) {
-          setState("outside");
+          schedule(interval);
         }
-
-        schedule(interval);
       },
       (error) => {
         console.error("Location Error:", error.code, error.message);
@@ -204,7 +182,6 @@ const useAttendanceEngine = () => {
     snoozedUntil,
     lastSignOutDate,
     resetDay,
-    setState,
     openModal,
   ]);
 
@@ -213,18 +190,16 @@ const useAttendanceEngine = () => {
   }, [run]);
 
   useEffect(() => {
-    if (state === "idle") {
-      setState("tracking");
-    }
 
     run();
 
     return () => {
+
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
     };
-  }, [run, setState, state]);
+  }, []);
 
   return {
     state,

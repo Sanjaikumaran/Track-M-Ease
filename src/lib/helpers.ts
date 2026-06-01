@@ -112,10 +112,9 @@ const getDistanceMeters = (
 };
 
 const getInterval = (distance: number, rules: Rule[]) => {
-  const sorted = [...rules].sort((a, b) => b.minDistance - a.minDistance);
-
+  const sorted = [...rules].sort((a, b) => a.minDistance - b.minDistance);
   for (const rule of sorted) {
-    if (distance >= rule.minDistance) {
+    if (distance <= rule.minDistance) {
       return rule.interval;
     }
   }
