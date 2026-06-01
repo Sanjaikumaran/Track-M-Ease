@@ -121,13 +121,13 @@ const Rides = () => {
     useState<FilterState>(initialFilters);
   const [showDrafts, setShowDrafts] = useState<boolean>(false);
 
-  const fetchRides = async () => {
+  const fetchRides = async (refresh: boolean = false) => {
     setLoading(true);
     setShowDrafts(false);
 
     try {
       const { data, error } = await rideService.getAll(
-        false,
+        refresh,
         ["ride_date", "ride_start_time"],
         "desc",
         ["*", "shift_sessions(id, shift)"],
@@ -294,7 +294,7 @@ const Rides = () => {
 
       setEditingRide(null);
 
-      fetchRides();
+      fetchRides(true);
     } catch (err: unknown) {
       toast.error(`${err || "Save failed"}`);
     }

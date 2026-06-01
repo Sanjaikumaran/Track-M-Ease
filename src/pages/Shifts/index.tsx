@@ -99,13 +99,13 @@ const ShiftSessions = () => {
     useState<FilterState>(initialFilters);
   const [showDrafts, setShowDrafts] = useState(false);
 
-  const fetchSessions = async () => {
+  const fetchSessions = async (refresh: boolean = false) => {
     setLoading(true);
     setShowDrafts(false);
 
     try {
       const { data, error } = await shiftService.getAll(
-        false,
+        refresh,
         ["shift_date", "shift_start_time"],
         "desc",
       );
@@ -221,7 +221,7 @@ const ShiftSessions = () => {
 
       setEditingSession(null);
 
-      fetchSessions();
+      fetchSessions(true);
 
       return true;
     } catch (err: unknown) {

@@ -108,12 +108,12 @@ const Transactions = () => {
     useState<FilterState>(initialFilters);
   const [showDrafts, setShowDrafts] = useState(false);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (refresh: boolean = false) => {
     setLoading(true);
     setShowDrafts(false);
 
     const { data, error } = await service.getAll(
-      false,
+      refresh,
       ["transaction_date", "transaction_time"],
       "desc",
     );
@@ -181,7 +181,7 @@ const Transactions = () => {
 
     setEditingTransaction(null);
     setErrors(initialErrors);
-    fetchTransactions();
+    fetchTransactions(true);
   };
 
   const deleteTransaction = async (id: string) => {

@@ -79,13 +79,13 @@ const FuelPage = () => {
 
   const fetchedRef = useRef<boolean>(false);
 
-  const fetchFuels = async () => {
+  const fetchFuels = async (refresh: boolean = false) => {
     setLoading(true);
     setShowDrafts(false);
 
     try {
       const { data, error } = await fuelService.getAll(
-        false,
+        refresh,
         ["fuel_date", "fuel_time"],
         "desc",
       );
@@ -211,7 +211,7 @@ const FuelPage = () => {
       );
 
       setEditingFuel(null);
-      fetchFuels();
+      fetchFuels(true);
     } catch (err: unknown) {
       toast.error(`${err || "Save failed"}`);
     }
