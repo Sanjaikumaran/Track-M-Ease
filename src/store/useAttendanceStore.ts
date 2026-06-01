@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 type ModalMode = "present" | "signout";
 
-export type AttendanceState =
+type AttendanceState =
   | "idle"
   | "tracking"
   | "inside"
@@ -36,6 +36,9 @@ type AttendanceStore = {
   snooze: (seconds: number) => void;
 
   resetDay: () => void;
+  currentDistance: number | null;
+
+  setCurrentDistance: (distance: number) => void;
 };
 
 export const useAttendanceStore = create<AttendanceStore>()(
@@ -99,6 +102,12 @@ export const useAttendanceStore = create<AttendanceStore>()(
           snoozedUntil: null,
 
           modalOpen: false,
+        }),
+      currentDistance: null,
+
+      setCurrentDistance: (distance) =>
+        set({
+          currentDistance: distance,
         }),
     }),
     {

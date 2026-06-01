@@ -7,7 +7,7 @@ import {
   sendNotification,
 } from "../lib/helpers";
 
-export function useAttendanceEngine() {
+const useAttendanceEngine = () => {
   const timerRef = useRef<number | null>(null);
   const runRef = useRef<() => void>(() => {});
 
@@ -26,6 +26,7 @@ export function useAttendanceEngine() {
     lastSignOutDate,
 
     resetDay,
+    setCurrentDistance,
   } = useAttendanceStore();
 
   const stateRef = useRef(state);
@@ -154,6 +155,7 @@ export function useAttendanceEngine() {
           config.officeLng,
         );
 
+        setCurrentDistance(distance);
         const interval = getInterval(distance, config.rules);
 
         const inside = distance <= config.radius;
@@ -227,4 +229,6 @@ export function useAttendanceEngine() {
   return {
     state,
   };
-}
+};
+
+export { useAttendanceEngine };

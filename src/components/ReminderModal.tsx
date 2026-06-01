@@ -4,17 +4,23 @@ import Button from "./ui/button";
 
 type ReminderMode = "present" | "signout";
 
-export function ReminderModal({
-  open,
-  mode,
-  onComplete,
-  onSnooze,
-}: {
+type ReminderModelProps = {
   open: boolean;
   mode: ReminderMode;
   onComplete: () => void;
   onSnooze: () => void;
-}) {
+  distance: number;
+  snoozeUntil: number;
+};
+
+const ReminderModal = ({
+  open,
+  mode,
+  onComplete,
+  onSnooze,
+  distance,
+  snoozeUntil,
+}: ReminderModelProps) => {
   const toast = useToast();
   const [progress, setProgress] = useState(0);
 
@@ -24,7 +30,9 @@ export function ReminderModal({
 
   const title = isPresent ? "Office Attendance" : "Work Day Ended";
   const subtitle = isPresent
-    ? "You are near office. Please mark attendance."
+    ? "You are near office. Please mark attendance. Distance: " +
+      distance.toFixed(2) +
+      " meters"
     : "Your work hours are over. Please sign out.";
 
   const completeLabel = isPresent ? "Mark Present" : "Sign Out";
@@ -73,10 +81,12 @@ export function ReminderModal({
             onClick={onSnooze}
             className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200"
           >
-            Snooze
+            Snooze ({snoozeUntil} s)
           </Button>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export { ReminderModal };

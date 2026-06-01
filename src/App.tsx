@@ -8,19 +8,19 @@ import { supabase } from "./lib/supabase.config";
 
 import AppLayout from "./layouts/AppLayout";
 
-import Login from "./pages/Login";
-import { Settings } from "./pages/AttendanceConfig";
-
-import { useAttendanceEngine } from "./hooks/useAttendanceEngine";
 import { useConfigStore } from "./store/useConfigStore";
-import { ReminderModal } from "./components/ReminderModal";
-import { useAttendanceStore } from "./store/useAttendanceStore";
+import { useAttendanceEngine } from "./hooks/useAttendanceEngine";
+
+import Login from "./pages/Login";
+import AttendanceScreen from "./pages/AttendanceScreen";
+
 import { requestNotificationPermission } from "./lib/helpers";
 
 const Transactions = lazy(() => import("./pages/Transactions"));
 const Rides = lazy(() => import("./pages/Rides"));
 const Shifts = lazy(() => import("./pages/Shifts"));
 const Fuels = lazy(() => import("./pages/Fuels"));
+const Settings = lazy(() => import("./pages/AttendanceConfig"));
 
 const App = () => {
   useAttendanceEngine();
@@ -116,27 +116,5 @@ const App = () => {
     </Suspense>
   );
 };
-
-function AttendanceScreen() {
-  const { modalOpen, modalMode, markPresent, markSignOut, snooze } =
-    useAttendanceStore();
-
-  useAttendanceEngine();
-
-  return (
-    <ReminderModal
-      open={modalOpen}
-      mode={modalMode}
-      onComplete={() => {
-        if (modalMode === "present") {
-          markPresent();
-        } else {
-          markSignOut();
-        }
-      }}
-      onSnooze={() => snooze(20)}
-    />
-  );
-}
 
 export default App;

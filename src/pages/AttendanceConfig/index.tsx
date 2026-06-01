@@ -25,7 +25,7 @@ type ErrorState = {
   rules: Record<number, string>;
 };
 
-export function Settings() {
+const Settings = () => {
   const toast = useToast();
 
   const { config, updateConfig, saveConfig } = useConfigStore();
@@ -373,4 +373,6 @@ export function Settings() {
       </div>
     </div>
   );
-}
+};
+
+export default Settings;
