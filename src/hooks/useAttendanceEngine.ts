@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useConfigStore } from "../store/useConfigStore";
 import { useAttendanceStore } from "../store/useAttendanceStore";
-import { getDistanceMeters, getInterval } from "../lib/helpers";
+import {
+  getDistanceMeters,
+  getInterval,
+  sendNotification,
+} from "../lib/helpers";
 
 export function useAttendanceEngine() {
   const timerRef = useRef<number | null>(null);
@@ -25,6 +29,8 @@ export function useAttendanceEngine() {
   } = useAttendanceStore();
 
   const stateRef = useRef(state);
+  const presentNotificationSentRef = useRef(false);
+  const signoutNotificationSentRef = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
@@ -84,7 +90,6 @@ export function useAttendanceEngine() {
   const run = useCallback(async () => {
     const today = new Date().toDateString();
 
-    // Reset next day after signout
     if (
       stateRef.current === "stopped" &&
       lastSignOutDate &&
@@ -94,7 +99,6 @@ export function useAttendanceEngine() {
       return;
     }
 
-    // Wait until office start time
     if (isBeforeStart()) {
       const ms = getMsUntilStart();
 
@@ -103,35 +107,40 @@ export function useAttendanceEngine() {
       return;
     }
 
-    // Snoozed
     if (isSnoozed()) {
       schedule(config.snoozeUntil);
 
       return;
     }
 
-    // Weekend / disabled day
     if (!isWorkingDay()) {
       schedule(3600);
 
       return;
     }
 
-    // Already signed out today
     if (stateRef.current === "stopped") {
       schedule(3600);
 
       return;
     }
 
-    // Signout reminder
     if (presentMarked && isAfterWork()) {
       if (stateRef.current !== "signout_pending") {
         setState("signout_pending");
         openModal("signout");
+
+        if (!signoutNotificationSentRef.current) {
+          sendNotification(
+            "Sign Out Required",
+            "Your work hours are completed. Please sign out.",
+          );
+
+          signoutNotificationSentRef.current = true;
+        }
       }
 
-      schedule(300);
+      schedule(60);
 
       return;
     }
@@ -156,10 +165,18 @@ export function useAttendanceEngine() {
           state: stateRef.current,
         });
 
-        // Present reminder
         if (!presentMarked && inside && stateRef.current !== "inside") {
           setState("inside");
           openModal("present");
+
+          if (!presentNotificationSentRef.current) {
+            sendNotification(
+              "Attendance Required",
+              "You are near the office. Swipe to mark attendance.",
+            );
+
+            presentNotificationSentRef.current = true;
+          }
         }
 
         if (!inside) {
@@ -177,6 +194,7 @@ export function useAttendanceEngine() {
         enableHighAccuracy: true,
       },
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     config,
     presentMarked,

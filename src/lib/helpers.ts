@@ -127,6 +127,30 @@ const getAttendanceState = (distance: number, radius: number) => {
   return distance <= radius ? "inside" : "outside";
 };
 
+const requestNotificationPermission = async () => {
+  if (!("Notification" in window)) return false;
+
+  if (Notification.permission === "granted") {
+    return true;
+  }
+
+  const permission = await Notification.requestPermission();
+
+  return permission === "granted";
+};
+
+const sendNotification = async (title: string, body: string) => {
+  if (Notification.permission !== "granted") {
+    return;
+  }
+
+  new Notification(title, {
+    body,
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+  });
+};
+
 export {
   getTimeDifference,
   getShiftByTime,
@@ -136,4 +160,6 @@ export {
   getDistanceMeters,
   getInterval,
   getAttendanceState,
+  requestNotificationPermission,
+  sendNotification,
 };

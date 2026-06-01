@@ -15,6 +15,7 @@ import { useAttendanceEngine } from "./hooks/useAttendanceEngine";
 import { useConfigStore } from "./store/useConfigStore";
 import { ReminderModal } from "./components/ReminderModal";
 import { useAttendanceStore } from "./store/useAttendanceStore";
+import { requestNotificationPermission } from "./lib/helpers";
 
 const Transactions = lazy(() => import("./pages/Transactions"));
 const Rides = lazy(() => import("./pages/Rides"));
@@ -29,6 +30,7 @@ const App = () => {
 
   useEffect(() => {
     hydrateConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [session, setSession] = useState<Session | null>(null);
@@ -47,6 +49,10 @@ const App = () => {
     return () => {
       listener.subscription.unsubscribe();
     };
+  }, []);
+
+  useEffect(() => {
+    requestNotificationPermission();
   }, []);
 
   if (!session) {
