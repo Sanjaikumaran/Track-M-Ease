@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import AttendanceScreen from "./pages/AttendanceScreen";
 
 import { requestNotificationPermission } from "./lib/helpers";
+import { AttendanceDebugPanel } from "./pages/debug";
 
 const Transactions = lazy(() => import("./pages/Transactions"));
 const Rides = lazy(() => import("./pages/Rides"));
@@ -77,16 +78,13 @@ const App = () => {
     >
       <Routes>
         <Route element={<AppLayout />}>
+          // remove
+          <Route path="/debug" element={<AttendanceDebugPanel />} />
           <Route path="/transactions" element={<Transactions />} />
-
           <Route path="/rides" element={<Rides />} />
-
           <Route path="/fuel" element={<Fuels />} />
-
           <Route path="/shifts" element={<Shifts />} />
-
           <Route path="/attendance-config" element={<Settings />} />
-
           <Route
             path="*"
             element={

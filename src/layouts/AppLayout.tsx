@@ -100,6 +100,15 @@ const AppLayout = () => {
     },
   ];
 
+  if (user?.email === "sanjaikumaran0311@gmail.com") {
+    navItems.push({
+      label: "Attendance Debug",
+      path: "/debug",
+      icon: Briefcase,
+      subHeader: "Debug Attendance State",
+    });
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
