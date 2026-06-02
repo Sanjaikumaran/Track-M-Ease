@@ -150,6 +150,32 @@ const sendNotification = async (title: string, body: string) => {
   });
 };
 
+const sendNotificationWorker = async (title: string, body: string) => {
+  if (!("Notification" in window)) {
+    console.log("Notifications not supported");
+    return;
+  }
+  if (Notification.permission !== "granted") {
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      return;
+    }
+  }
+  try {
+    const registration = await navigator.serviceWorker.ready;
+
+    await registration.showNotification(title, {
+      body,
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      tag: `geofence-alert-${Date.now()}`,
+    });
+  } catch (err) {
+    console.error("Notification error:", err);
+  }
+};
+
 export {
   getTimeDifference,
   getShiftByTime,
@@ -161,4 +187,5 @@ export {
   getAttendanceState,
   requestNotificationPermission,
   sendNotification,
+  sendNotificationWorker,
 };

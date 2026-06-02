@@ -55,12 +55,10 @@ const Settings = () => {
     try {
       const position = await new Promise<GeolocationPosition>(
         (resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            resolve,
-            reject,
-            { enableHighAccuracy: true }
-          );
-        }
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+          });
+        },
       );
 
       updateConfig({
@@ -173,11 +171,11 @@ const Settings = () => {
   };
 
   const saveSettings = async () => {
-    setLoading(true);
     if (!validate()) {
       toast.error("Please fix validation errors");
       return;
     }
+    setLoading(true);
 
     try {
       await saveConfig();
@@ -186,8 +184,7 @@ const Settings = () => {
     } catch (error) {
       console.error(error);
       toast.error("Failed to save settings");
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -200,6 +197,7 @@ const Settings = () => {
 
     return () => clearInterval(interval);
   }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -218,7 +216,12 @@ const Settings = () => {
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-lg">Office Settings</h2>
 
-            <Button variant="link" loading={loading} disabled={loading} onClick={useCurrentLocation}>
+            <Button
+              variant="link"
+              loading={loading}
+              disabled={loading}
+              onClick={useCurrentLocation}
+            >
               Use Current Location
             </Button>
           </div>
@@ -388,7 +391,9 @@ const Settings = () => {
         </div>
 
         <div>
-          <Button loading={loading} disabled={loading} onClick={saveSettings}>Save Settings</Button>
+          <Button loading={loading} disabled={loading} onClick={saveSettings}>
+            Save Settings
+          </Button>
         </div>
       </div>
     </div>

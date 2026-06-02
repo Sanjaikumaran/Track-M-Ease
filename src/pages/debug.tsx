@@ -1,4 +1,5 @@
 import Button from "../components/ui/button";
+import { sendNotificationWorker } from "../lib/helpers";
 import { useAttendanceStore } from "../store/useAttendanceStore";
 
 export function AttendanceDebugPanel() {
@@ -49,27 +50,19 @@ export function AttendanceDebugPanel() {
       <pre className="max-h-64 overflow-auto rounded bg-gray-100 p-2 text-[10px]">
         {JSON.stringify(store, null, 2)}
       </pre>
+
       <Button
         variant="primary"
         onClick={async () => {
-          console.log("permission:", Notification.permission);
-
-          if (Notification.permission !== "granted") {
-            const permission = await Notification.requestPermission();
-            console.log("new permission:", permission);
-          }
-
-          new Notification("Test Notification", {
-            body: "Mobile notification test",
-            icon: "/icon-192.png",
-          });
+          sendNotificationWorker(
+            "Test Notification",
+            "This is a test notification from the worker",
+          );
         }}
       >
         Test Notification
       </Button>
-      <div>
-        Permission: {Notification.permission}
-      </div>
+      <div>Permission: {Notification.permission}</div>
 
       <Button
         onClick={async () => {
@@ -79,7 +72,6 @@ export function AttendanceDebugPanel() {
       >
         Request Permission
       </Button>
-
 
       <button
         onClick={() => {
