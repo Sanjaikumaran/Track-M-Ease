@@ -134,42 +134,43 @@ const useAttendanceEngine = () => {
 
       return;
     }
+    if (!presentMarked) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const distance = getDistanceMeters(
+            pos.coords.latitude,
+            pos.coords.longitude,
+            config.officeLat,
+            config.officeLng,
+          );
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const distance = getDistanceMeters(
-          pos.coords.latitude,
-          pos.coords.longitude,
-          config.officeLat,
-          config.officeLng,
-        );
+          const interval = getInterval(distance, config.rules);
+          setCurrentDistance(distance);
 
-        const interval = getInterval(distance, config.rules);
-        setCurrentDistance(distance);
+          const inside = distance <= config.radius;
 
-        const inside = distance <= config.radius;
+          if (inside) {
+            if (!presentMarked && !isSnoozed()) {
+              openModal("present");
+              sendNotificationWorker(
+                "Attendance Required",
+                "You are near the office. Swipe to mark attendance.",
+              );
+            }
 
-        if (inside) {
-          if (!presentMarked && !isSnoozed()) {
-            openModal("present");
-            sendNotificationWorker(
-              "Attendance Required",
-              "You are near the office. Swipe to mark attendance.",
-            );
+            schedule(interval);
           }
+        },
+        (error) => {
+          console.error("Location Error:", error.code, error.message);
 
-          schedule(interval);
-        }
-      },
-      (error) => {
-        console.error("Location Error:", error.code, error.message);
-
-        schedule(config.snoozeUntil);
-      },
-      {
-        enableHighAccuracy: true,
-      },
-    );
+          schedule(config.snoozeUntil);
+        },
+        {
+          enableHighAccuracy: true,
+        },
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     config,
