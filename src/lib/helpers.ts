@@ -162,15 +162,19 @@ const sendNotificationWorker = async (title: string, body: string) => {
       return;
     }
   }
+
+  console.log("Sending notification via worker:", title, body);
   try {
     const registration = await navigator.serviceWorker.ready;
 
+    console.log("Service Worker ready, sending notification");
     await registration.showNotification(title, {
       body,
       icon: "/icon-192.png",
       badge: "/icon-192.png",
       tag: `geofence-alert-${Date.now()}`,
     });
+    console.log("Notification sent via worker");
   } catch (err) {
     console.error("Notification error:", err);
   }
