@@ -8,3 +8,20 @@ self.addEventListener("activate", (event) => {
 
   event.waitUntil(clients.claim());
 });
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const url = event.notification.data?.url || "/";
+
+  if (event.action === "open") {
+    event.waitUntil(clients.openWindow(url));
+    return;
+  }
+
+  if (event.action === "ignore") {
+    return;
+  }
+
+  event.waitUntil(clients.openWindow(url));
+});

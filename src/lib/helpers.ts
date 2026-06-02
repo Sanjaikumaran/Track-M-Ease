@@ -150,6 +150,14 @@ const sendNotification = async (title: string, body: string) => {
   });
 };
 
+type ExtendedNotificationOptions = NotificationOptions & {
+  actions?: {
+    action: string;
+    title: string;
+    icon?: string;
+  }[];
+  vibrate?: number[];
+};
 const sendNotificationWorker = async (title: string, body: string) => {
   if (!("Notification" in window)) {
     return;
@@ -170,7 +178,14 @@ const sendNotificationWorker = async (title: string, body: string) => {
       icon: "/favicon.svg",
       badge: "/favicon.svg",
       tag: `geofence-alert-${Date.now()}`,
-    });
+      data: {
+        url: "/reminder",
+      },
+      actions: [
+        { action: "open", title: "Open" },
+        { action: "ignore", title: "Ignore" },
+      ],
+    } as ExtendedNotificationOptions);
   } catch (err) {
     console.error("Notification error:", err);
   }

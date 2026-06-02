@@ -94,7 +94,7 @@ const AppLayout = () => {
     },
     {
       label: "Reminder Config",
-      path: "/attendance-config",
+      path: "/reminder",
       icon: Briefcase,
       subHeader: "Configure reminder system",
     },

@@ -106,7 +106,7 @@ const App = () => {
           <Route path="/rides" element={<Rides />} />
           <Route path="/fuel" element={<Fuels />} />
           <Route path="/shifts" element={<Shifts />} />
-          <Route path="/attendance-config" element={<Settings />} />
+          <Route path="/reminder" element={<Settings />} />
           <Route
             path="*"
             element={
