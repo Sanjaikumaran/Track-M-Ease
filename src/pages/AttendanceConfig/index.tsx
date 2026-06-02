@@ -197,7 +197,7 @@ const Settings = () => {
             <h1 className="text-xl sm:text-2xl font-bold">Settings</h1>
             <p className="text-sm text-gray-500">Configure reminder system</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {editMode && (
               <div>
                 <Button
@@ -206,7 +206,7 @@ const Settings = () => {
                   onClick={saveSettings}
                   variant="outline"
                 >
-                  Save Settings
+                  Save
                 </Button>
               </div>
             )}
@@ -344,7 +344,11 @@ const Settings = () => {
                   />
                 )}
 
-                <span className="text-sm font-medium uppercase">{day}</span>
+                <span
+                  className={`text-sm font-medium uppercase ${!editMode && !config.enabledDays.includes(day) ? "text-red-500" : ""}`}
+                >
+                  {day}
+                </span>
               </label>
             ))}
           </div>

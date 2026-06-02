@@ -231,9 +231,8 @@ const AppLayout = () => {
                 <p className="max-w-[140px] truncate text-sm font-semibold text-gray-800">
                   {user?.user_metadata?.display_name || "User"}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs text-gray-600">
                   {currentTime.toLocaleTimeString()}
-                  <br />
                 </p>
               </div>
 
@@ -252,6 +251,9 @@ const AppLayout = () => {
                       <h3 className="truncate font-semibold text-gray-900">
                         {user?.user_metadata?.display_name || "User"}
                       </h3>
+                      <p className="text-xs text-gray-600">
+                        {currentTime.toLocaleTimeString()}
+                      </p>
                     </div>
                   </div>
                 </div>
