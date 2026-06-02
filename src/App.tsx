@@ -68,18 +68,6 @@ const App = () => {
     );
   }
 
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", async () => {
-      try {
-        const registration = await navigator.serviceWorker.register("/sw.js");
-
-        console.log("SW Registered:", registration);
-      } catch (err) {
-        console.error("SW Registration Failed:", err);
-      }
-    });
-  }
-
   return (
     <Suspense
       fallback={
