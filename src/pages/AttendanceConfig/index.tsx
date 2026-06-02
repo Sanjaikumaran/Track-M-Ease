@@ -201,19 +201,17 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="rounded-lg bg-white p-4 shadow mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">Settings</h1>
-            <p className="text-sm text-gray-500">
-              Configure your attendance system
-            </p>
+            <p className="text-sm text-gray-500">Configure reminder system</p>
           </div>
 
           <p className="text-sm text-gray-600 mt-2">
-            Current Time: {currentTime.toLocaleTimeString()}
+            Time: {currentTime.toLocaleTimeString()}
             <br />
-            Current Distance:&nbsp;
+            Distance:&nbsp;
             {currentDistance !== null
               ? currentDistance > 1000
                 ? `${(currentDistance / 1000).toFixed(2)} km`

@@ -93,10 +93,10 @@ const AppLayout = () => {
       subHeader: "Manage your shift sessions",
     },
     {
-      label: "Attendance Config",
+      label: "Reminder Config",
       path: "/attendance-config",
       icon: Briefcase,
-      subHeader: "Configure office location and radius",
+      subHeader: "Configure reminder system",
     },
   ];
 
