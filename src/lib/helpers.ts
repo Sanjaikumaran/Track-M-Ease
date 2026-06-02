@@ -181,10 +181,7 @@ const sendNotificationWorker = async (title: string, body: string) => {
       data: {
         url: "/reminder",
       },
-      actions: [
-        { action: "open", title: "Open" },
-        { action: "ignore", title: "Ignore" },
-      ],
+      actions: [{ action: "ignore", title: "Ignore" }],
     } as ExtendedNotificationOptions);
   } catch (err) {
     console.error("Notification error:", err);
