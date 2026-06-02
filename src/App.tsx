@@ -56,6 +56,28 @@ const App = () => {
     requestNotificationPermission();
   }, []);
 
+  const requestWakeLock = async () => {
+    try {
+      if ("wakeLock" in navigator) {
+        const lock = await navigator.wakeLock.request("screen");
+
+        console.log("Wake Lock active");
+
+        lock.addEventListener("release", () => {
+          console.log("Wake Lock released");
+        });
+
+        return lock;
+      }
+    } catch (err) {
+      console.error("Wake lock error:", err);
+    }
+  };
+
+  useEffect(() => {
+    requestWakeLock();
+  }, []);
+
   if (!session) {
     return <Login />;
   }
