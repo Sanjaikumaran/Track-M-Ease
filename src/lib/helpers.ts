@@ -167,8 +167,8 @@ const sendNotificationWorker = async (title: string, body: string) => {
 
     await registration.showNotification(title, {
       body,
-      icon: "/icon-192.png",
-      badge: "/icon-192.png",
+      icon: "/favicon.svg",
+      badge: "/favicon.svg",
       tag: `geofence-alert-${Date.now()}`,
     });
   } catch (err) {
