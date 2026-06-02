@@ -3,14 +3,13 @@ import { useConfigStore } from "../store/useConfigStore";
 import { useAttendanceStore } from "../store/useAttendanceStore";
 import {
   getDistanceMeters,
-  // getInterval,
+  getInterval,
   sendNotificationWorker,
 } from "../lib/helpers";
 
 const useAttendanceEngine = () => {
   const timerRef = useRef<number | null>(null);
   const runRef = useRef<() => void>(() => {});
-  const watchIdRef = useRef<number | null>(null);
 
   const config = useConfigStore((s) => s.config);
 
@@ -135,7 +134,43 @@ const useAttendanceEngine = () => {
 
       return;
     }
+    if (!presentMarked) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const distance = getDistanceMeters(
+            pos.coords.latitude,
+            pos.coords.longitude,
+            config.officeLat,
+            config.officeLng,
+          );
 
+          const interval = getInterval(distance, config.rules);
+          setCurrentDistance(distance);
+
+          const inside = distance <= config.radius;
+
+          if (inside) {
+            if (!presentMarked && !isSnoozed()) {
+              openModal("present");
+              sendNotificationWorker(
+                "Attendance Required",
+                "You are near the office. Swipe to mark attendance.",
+              );
+            }
+
+            schedule(interval);
+          }
+        },
+        (error) => {
+          console.error("Location Error:", error.code, error.message);
+
+          schedule(config.snoozeUntil);
+        },
+        {
+          enableHighAccuracy: true,
+        },
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     config,
@@ -159,46 +194,8 @@ const useAttendanceEngine = () => {
         clearTimeout(timerRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        const distance = getDistanceMeters(
-          pos.coords.latitude,
-          pos.coords.longitude,
-          config.officeLat,
-          config.officeLng,
-        );
-
-        setCurrentDistance(distance);
-
-        const inside = distance <= config.radius;
-
-        if (inside && !presentMarked && !isSnoozed()) {
-          openModal("present");
-
-          sendNotificationWorker(
-            "Attendance Required",
-            "You are near the office. Swipe to mark attendance.",
-          );
-        }
-      },
-      (err) => console.error("GPS error", err),
-      {
-        enableHighAccuracy: true,
-        maximumAge: 5000,
-      },
-    );
-
-    return () => {
-      if (watchIdRef.current) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-      }
-    };
-  }, [presentMarked, config]);
 
   return {
     state,
