@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 
 import { useToast } from "../../context/toast";
 import { useConfigStore } from "../../store/useConfigStore";
+import { useAttendanceStore } from "../../store/useAttendanceStore";
 
 import Input from "../../components/ui/input";
 import Button from "../../components/ui/button";
@@ -27,7 +28,7 @@ type ErrorState = {
 
 const Settings = () => {
   const toast = useToast();
-
+  const { currentDistance } = useAttendanceStore();
   const [loading, setLoading] = useState(false);
   const { config, updateConfig, saveConfig } = useConfigStore();
 
@@ -201,14 +202,23 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold">Settings</h1>
-          <p className="text-sm text-gray-500">
-            Configure your attendance system
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold">Settings</h1>
+            <p className="text-sm text-gray-500">
+              Configure your attendance system
+            </p>
+          </div>
 
           <p className="text-sm text-gray-600 mt-2">
-            {currentTime.toLocaleTimeString()}
+            Current Time: {currentTime.toLocaleTimeString()}
+            <br />
+            Current Distance:&nbsp;
+            {currentDistance !== null
+              ? currentDistance > 1000
+                ? `${(currentDistance / 1000).toFixed(2)} km`
+                : `${currentDistance.toFixed(2)} meters`
+              : "N/A"}
           </p>
         </div>
 
