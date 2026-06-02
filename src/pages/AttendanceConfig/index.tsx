@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 
 import { useToast } from "../../context/toast";
 import { useConfigStore } from "../../store/useConfigStore";
-import { useAttendanceStore } from "../../store/useAttendanceStore";
 
 import Input from "../../components/ui/input";
 import Button from "../../components/ui/button";
@@ -28,8 +27,8 @@ type ErrorState = {
 
 const Settings = () => {
   const toast = useToast();
-  const { currentDistance } = useAttendanceStore();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [editMode, setEditMode] = useState<boolean>(false);
   const { config, updateConfig, saveConfig } = useConfigStore();
 
   const [errors, setErrors] = useState<ErrorState>({
@@ -189,15 +188,6 @@ const Settings = () => {
       setLoading(false);
     }
   };
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -207,31 +197,39 @@ const Settings = () => {
             <h1 className="text-xl sm:text-2xl font-bold">Settings</h1>
             <p className="text-sm text-gray-500">Configure reminder system</p>
           </div>
-
-          <p className="text-sm text-gray-600 mt-2">
-            Time: {currentTime.toLocaleTimeString()}
-            <br />
-            Distance:&nbsp;
-            {currentDistance !== null
-              ? currentDistance > 1000
-                ? `${(currentDistance / 1000).toFixed(2)} km`
-                : `${currentDistance.toFixed(2)} meters`
-              : "N/A"}
-          </p>
+          <div className="flex items-center gap-3">
+            {editMode && (
+              <div>
+                <Button
+                  loading={loading}
+                  disabled={loading}
+                  onClick={saveSettings}
+                  variant="outline"
+                >
+                  Save Settings
+                </Button>
+              </div>
+            )}
+            <Button onClick={() => setEditMode((prev) => !prev)}>
+              {editMode ? "Cancel" : "Edit Settings"}
+            </Button>
+          </div>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-lg">Office Settings</h2>
 
-            <Button
-              variant="link"
-              loading={loading}
-              disabled={loading}
-              onClick={useCurrentLocation}
-            >
-              Use Current Location
-            </Button>
+            {editMode && (
+              <Button
+                variant="link"
+                loading={loading}
+                disabled={!editMode || loading}
+                onClick={useCurrentLocation}
+              >
+                Use Current Location
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -244,6 +242,8 @@ const Settings = () => {
                 })
               }
               error={errors.office.lat}
+              disabled={!editMode}
+              readOnly={!editMode}
             />
 
             <Input
@@ -255,6 +255,8 @@ const Settings = () => {
                 })
               }
               error={errors.office.lng}
+              disabled={!editMode}
+              readOnly={!editMode}
             />
           </div>
 
@@ -269,6 +271,8 @@ const Settings = () => {
               })
             }
             error={errors.office.radius}
+            disabled={!editMode}
+            readOnly={!editMode}
           />
         </div>
 
@@ -286,6 +290,8 @@ const Settings = () => {
                 })
               }
               error={errors.work.startTime}
+              disabled={!editMode}
+              readOnly={!editMode}
             />
 
             <Input
@@ -299,6 +305,8 @@ const Settings = () => {
                 })
               }
               error={errors.work.hours}
+              disabled={!editMode}
+              readOnly={!editMode}
             />
           </div>
           <Input
@@ -312,6 +320,8 @@ const Settings = () => {
               })
             }
             error={errors.office.radius}
+            disabled={!editMode}
+            readOnly={!editMode}
           />
         </div>
 
@@ -324,11 +334,15 @@ const Settings = () => {
                 key={day}
                 className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg"
               >
-                <input
-                  type="checkbox"
-                  checked={config.enabledDays.includes(day)}
-                  onChange={() => toggleDay(day)}
-                />
+                {editMode && (
+                  <input
+                    type="checkbox"
+                    checked={config.enabledDays.includes(day)}
+                    onChange={() => toggleDay(day)}
+                    disabled={!editMode}
+                    readOnly={!editMode}
+                  />
+                )}
 
                 <span className="text-sm font-medium uppercase">{day}</span>
               </label>
@@ -340,9 +354,11 @@ const Settings = () => {
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-lg">Distance Rules</h2>
 
-            <Button onClick={addRule} variant="secondary">
-              + Add Rule
-            </Button>
+            {editMode && (
+              <Button onClick={addRule} variant="secondary">
+                + Add Rule
+              </Button>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -361,6 +377,8 @@ const Settings = () => {
                       updateRule(index, "minDistance", Number(v))
                     }
                     helperText={`KM: ${(rule.minDistance / 1000).toFixed(2)}`}
+                    disabled={!editMode}
+                    readOnly={!editMode}
                   />
 
                   <Input
@@ -372,6 +390,8 @@ const Settings = () => {
                     helperText={`Min: ${(rule.interval / 60).toFixed(
                       2,
                     )} | Hr: ${(rule.interval / 3600).toFixed(2)}`}
+                    disabled={!editMode}
+                    readOnly={!editMode}
                   />
                 </div>
 
@@ -380,14 +400,17 @@ const Settings = () => {
                     Rule #{index + 1}
                   </span>
 
-                  <button
-                    type="button"
-                    onClick={() => removeRule(index)}
-                    className="hover:cursor-pointer flex items-center gap-1 text-red-500 text-sm font-medium px-3 py-1 rounded-md hover:bg-red-50 transition"
-                  >
-                    <X size={16} />
-                    Delete
-                  </button>
+                  {editMode && (
+                    <button
+                      type="button"
+                      onClick={() => removeRule(index)}
+                      disabled={!editMode}
+                      className="hover:cursor-pointer flex items-center gap-1 text-red-500 text-sm font-medium px-3 py-1 rounded-md hover:bg-red-50 transition"
+                    >
+                      <X size={16} />
+                      Delete
+                    </button>
+                  )}
                 </div>
 
                 {errors.rules[index] && (
@@ -396,12 +419,6 @@ const Settings = () => {
               </div>
             ))}
           </div>
-        </div>
-
-        <div>
-          <Button loading={loading} disabled={loading} onClick={saveSettings}>
-            Save Settings
-          </Button>
         </div>
       </div>
     </div>

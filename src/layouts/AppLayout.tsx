@@ -19,6 +19,8 @@ import { supabase } from "../lib/supabase.config";
 
 import Button from "../components/ui/button";
 import type { User } from "@supabase/supabase-js";
+import { useAttendanceStore } from "../store/useAttendanceStore";
+import { useConfigStore } from "../store/useConfigStore";
 
 type NavItem = {
   label: string;
@@ -28,6 +30,9 @@ type NavItem = {
 };
 
 const AppLayout = () => {
+  const { currentDistance, presentTime } = useAttendanceStore();
+  const config = useConfigStore((s) => s.config);
+
   const location = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -116,6 +121,16 @@ const AppLayout = () => {
   const currentPage = navItems.find((item) => item.path === location.pathname);
 
   const HeaderIcon = currentPage?.icon;
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-[100dvh] bg-gray-100">
@@ -216,6 +231,10 @@ const AppLayout = () => {
                 <p className="max-w-[140px] truncate text-sm font-semibold text-gray-800">
                   {user?.user_metadata?.display_name || "User"}
                 </p>
+                <p className="text-sm text-gray-600">
+                  {currentTime.toLocaleTimeString()}
+                  <br />
+                </p>
               </div>
 
               <ChevronDown size={16} className="text-gray-500" />
@@ -239,7 +258,45 @@ const AppLayout = () => {
 
                 <div className="space-y-4 p-5">
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Distance from Office
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-700">
+                      {currentDistance !== null
+                        ? currentDistance > 1000
+                          ? `${(currentDistance / 1000).toFixed(2)} km`
+                          : `${currentDistance.toFixed(2)} meters`
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Sign In Time
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-700">
+                      {presentTime
+                        ? new Date(presentTime).toLocaleString()
+                        : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Sign Out Time
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-700">
+                      {presentTime
+                        ? new Date(
+                            presentTime + config.workHours * 60 * 60 * 1000,
+                          ).toLocaleString()
+                        : "-"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                       Email
                     </p>
 
@@ -249,7 +306,7 @@ const AppLayout = () => {
                   </div>
 
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                       Phone
                     </p>
 
@@ -257,7 +314,6 @@ const AppLayout = () => {
                       {user?.user_metadata?.phone || "--"}
                     </p>
                   </div>
-
                   <Button
                     variant="danger"
                     fullWidth
