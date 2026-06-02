@@ -16,7 +16,6 @@ self.addEventListener("notificationclick", (event) => {
 
   if (event.action === "open") {
     event.waitUntil(clients.openWindow(url));
-    return;
   }
 
   if (event.action === "ignore") {
