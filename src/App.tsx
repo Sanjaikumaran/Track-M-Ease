@@ -80,7 +80,14 @@ const App = () => {
   }, []);
 
   if (!session) {
-    return <Login />;
+    return (<>
+      <Routes>
+        <Route path="/privacy-policy" element={<LegalPage />} />
+        <Route path="/terms" element={<LegalPage />} />
+        <Route path="/data-deletion" element={<LegalPage />} />
+        <Route path="*" element={<Login />} />
+      </Routes>
+    </>);
   }
 
   if (!hydrated) {
@@ -108,7 +115,6 @@ const App = () => {
           <Route path="/fuel" element={<Fuels />} />
           <Route path="/shifts" element={<Shifts />} />
           <Route path="/reminder" element={<Settings />} />
-          <Route path="/privacy-policy" element={<LegalPage />} />
           <Route
             path="*"
             element={
