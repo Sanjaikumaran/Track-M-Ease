@@ -170,8 +170,16 @@ const ShiftSessions = () => {
       newErrors.remarks = "Remarks cannot exceed 300 characters";
     }
 
-    if (Number(data.start_km || 0) < sessions[0].end_km!) {
-      newErrors.start_km = `Start KM cannot be less than last recorded KM (${sessions[0]?.end_km})`;
+    const currentIndex = sessions.findIndex((s) => s.id === editingSession?.id);
+
+    const previousSession =
+      currentIndex >= 0 ? sessions[currentIndex + 1] : sessions[0];
+
+    if (
+      previousSession &&
+      Number(data.start_km || 0) < previousSession.end_km!
+    ) {
+      newErrors.start_km = `Start KM cannot be less than previous recorded KM (${previousSession.end_km})`;
     }
 
     setErrors(newErrors);

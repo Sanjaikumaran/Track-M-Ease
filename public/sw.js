@@ -1,0 +1,22 @@
+self.addEventListener("install", () => {
+  console.log("Service Worker Installed");
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  console.log("Service Worker Activated");
+
+  event.waitUntil(clients.claim());
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const url = event.notification.data?.url || "/";
+
+  if (event.action === "ignore") {
+    return;
+  }
+
+  event.waitUntil(clients.openWindow(url));
+});

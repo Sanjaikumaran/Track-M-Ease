@@ -4,12 +4,12 @@ import { useAttendanceStore } from "../store/useAttendanceStore";
 import {
   getDistanceMeters,
   getInterval,
-  sendNotification,
+  sendNotificationWorker,
 } from "../lib/helpers";
 
 const useAttendanceEngine = () => {
   const timerRef = useRef<number | null>(null);
-  const runRef = useRef<() => void>(() => { });
+  const runRef = useRef<() => void>(() => {});
 
   const config = useConfigStore((s) => s.config);
 
@@ -126,7 +126,7 @@ const useAttendanceEngine = () => {
     if (presentMarked && isAfterWork()) {
       openModal("signout");
 
-      sendNotification(
+      sendNotificationWorker(
         "Sign Out Required",
         "Your work hours are completed. Please sign out.",
       );
@@ -134,46 +134,43 @@ const useAttendanceEngine = () => {
 
       return;
     }
+    if (!presentMarked) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const distance = getDistanceMeters(
+            pos.coords.latitude,
+            pos.coords.longitude,
+            config.officeLat,
+            config.officeLng,
+          );
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
+          const interval = getInterval(distance, config.rules);
+          setCurrentDistance(distance);
 
-        const distance = getDistanceMeters(
-          pos.coords.latitude,
-          pos.coords.longitude,
-          config.officeLat,
-          config.officeLng,
-        );
+          const inside = distance <= config.radius;
 
+          if (inside) {
+            if (!presentMarked && !isSnoozed()) {
+              openModal("present");
+              sendNotificationWorker(
+                "Attendance Required",
+                "You are near the office. Swipe to mark attendance.",
+              );
+            }
 
-
-        const interval = getInterval(distance, config.rules);
-        setCurrentDistance(distance);
-
-        const inside = distance <= config.radius;
-
-        if (inside) {
-
-          if (!presentMarked && !isSnoozed()) {
-            openModal("present");
-            sendNotification(
-              "Attendance Required",
-              "You are near the office. Swipe to mark attendance."
-            );
+            schedule(interval);
           }
+        },
+        (error) => {
+          console.error("Location Error:", error.code, error.message);
 
-          schedule(interval);
-        }
-      },
-      (error) => {
-        console.error("Location Error:", error.code, error.message);
-
-        schedule(config.snoozeUntil);
-      },
-      {
-        enableHighAccuracy: true,
-      },
-    );
+          schedule(config.snoozeUntil);
+        },
+        {
+          enableHighAccuracy: true,
+        },
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     config,
@@ -190,15 +187,14 @@ const useAttendanceEngine = () => {
   }, [run]);
 
   useEffect(() => {
-
     run();
 
     return () => {
-
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

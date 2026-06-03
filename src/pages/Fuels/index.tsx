@@ -159,13 +159,16 @@ const FuelPage = () => {
     if (Number(data.odometer_km) > 999999)
       err.odometer_km = "KM seems too high";
 
-    const latest = fuelEntries[0];
+    const currentIndex = fuelEntries.findIndex((s) => s.id === editingFuel?.id);
 
-    if (!editingFuel && latest?.odometer_km) {
-      if (Number(data.odometer_km) <= Number(latest.odometer_km)) {
+    const previousSession =
+      currentIndex >= 0 ? fuelEntries[currentIndex + 1] : fuelEntries[0];
+
+    if (previousSession?.odometer_km) {
+      if (Number(data.odometer_km) <= Number(previousSession.odometer_km)) {
         err.odometer_km =
           "KM must be greater than previous entry (" +
-          latest.odometer_km +
+          previousSession.odometer_km +
           " KM)";
       }
     }

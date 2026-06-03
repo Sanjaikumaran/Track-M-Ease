@@ -209,32 +209,48 @@ const Rides = () => {
       newErrors.end_km = "End KM must be greater than Start KM";
     }
 
+    if (!data.ride_start_time?.trim()) {
+      newErrors.ride_start_time = "Ride start time is required";
+    }
+
+    if (!data.ride_end_time?.trim()) {
+      newErrors.ride_end_time = "Ride end time is required";
+    }
+
     if (data.ride_start_time && data.ride_end_time) {
-      if (Number(data.ride_end_time) < Number(data.ride_start_time)) {
+      if (data.ride_end_time < data.ride_start_time) {
         newErrors.ride_end_time = "End time must be greater than start time";
       }
     }
 
-    const latest = rides[0];
+    const currentIndex = rides.findIndex((s) => s.id === editingRide?.id);
+
+    const previousSession =
+      currentIndex >= 0 ? rides[currentIndex + 1] : rides[0];
 
     if (
       !editingRide &&
-      data.ride_date === latest.ride_date &&
-      latest?.ride_end_time &&
+      data.ride_date === previousSession.ride_date &&
+      previousSession?.ride_end_time &&
       data.ride_start_time
     ) {
-      if (data.ride_start_time < latest.ride_end_time) {
+      const normalize = (t: string) => t.padEnd(8, ":00");
+
+      if (
+        normalize(data.ride_start_time) <
+        normalize(previousSession.ride_end_time)
+      ) {
         newErrors.ride_start_time =
           "Start time must be greater than previous entry (" +
-          latest.ride_end_time +
+          previousSession.ride_end_time +
           ")";
       }
     }
-    if (!editingRide && latest?.end_km) {
-      if (Number(data.start_km) <= Number(latest.end_km)) {
+    if (!editingRide && previousSession?.end_km) {
+      if (Number(data.start_km) <= Number(previousSession.end_km)) {
         newErrors.start_km =
           "Start KM must be greater than previous entry (" +
-          latest.end_km +
+          previousSession.end_km +
           ")";
       }
     }
