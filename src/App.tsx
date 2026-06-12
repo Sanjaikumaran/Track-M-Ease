@@ -17,6 +17,7 @@ import AttendanceScreen from "./pages/AttendanceScreen";
 import { requestNotificationPermission } from "./lib/helpers";
 import { AttendanceDebugPanel } from "./pages/debug";
 import LegalPage from "./pages/PrivacyPolicies";
+import OAuth from "./pages/OAuth";
 
 const Transactions = lazy(() => import("./pages/Transactions"));
 const Rides = lazy(() => import("./pages/Rides"));
@@ -80,14 +81,17 @@ const App = () => {
   }, []);
 
   if (!session) {
-    return (<>
-      <Routes>
-        <Route path="/privacy-policy" element={<LegalPage />} />
-        <Route path="/terms" element={<LegalPage />} />
-        <Route path="/data-deletion" element={<LegalPage />} />
-        <Route path="*" element={<Login />} />
-      </Routes>
-    </>);
+    return (
+      <>
+        <Routes>
+          <Route path="/privacy-policy" element={<LegalPage />} />
+          <Route path="/terms" element={<LegalPage />} />
+          <Route path="/data-deletion" element={<LegalPage />} />
+          <Route path="/oauth" element={<OAuth />} />
+          <Route path="*" element={<Login />} />
+        </Routes>
+      </>
+    );
   }
 
   if (!hydrated) {
