@@ -64,12 +64,18 @@ const OAuth = () => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center p-2">
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-gray-100 py-4 px-8">
         <div className="flex flex-col items-center text-center">
-          <CheckCircle className="w-14 h-14 text-green-500 mb-4" />
+          <CheckCircle
+            className={`w-14 h-14 mb-4 ${code && code.length > 0 ? "text-green-500" : "text-red-500"}`}
+          />
 
-          <h1 className="text-3xl font-bold text-gray-900">OAuth Successful</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            OAuth {code && code.length > 0 ? "Successful" : "Failed"}
+          </h1>
 
           <p className="text-gray-500 mt-2">
-            Authorization code received successfully.
+            {code && code.length > 0
+              ? "Authorization code received successfully."
+              : "Authorization code not received."}
           </p>
         </div>
 
