@@ -1,166 +1,208 @@
 import { CheckCircle, Copy } from "lucide-react";
-import { useState } from "react";
-import Input from "../../components/ui/input";
+import { useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
 import Button from "../../components/ui/button";
-import { useNavigate } from "react-router-dom";
+import Input from "../../components/ui/input";
+
+const CopyButton = ({ value }: { value: string | null }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    if (!value) return;
+    await navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      disabled={copied}
+      className="absolute right-2 top-2 flex items-center gap-2 text-xs hover:underline cursor-pointer"
+    >
+      <Copy size={14} />
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+};
 
 const OAuth = () => {
   const navigate = useNavigate();
-  const [copied, setCopied] = useState(false);
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [errors, setErrors] = useState<{
+    callbackUrl?: string;
+    request?: string;
+  }>({});
   const [callbackUrl, setCallbackUrl] = useState(
     "http://localhost:8000/api/oauth/instagram/callback",
   );
+  const code = searchParams.get("code");
+  const state = searchParams.get("state");
 
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const requestUrl = useMemo(() => {
+    try {
+      const url = new URL(callbackUrl);
+      if (code) {
+        url.searchParams.set("code", code);
+      }
 
-  const query = new URLSearchParams(window.location.search);
-  const code = query.get("code");
+      if (state) {
+        url.searchParams.set("state", state);
+      }
 
-  const handleCopy = async () => {
-    if (!code) return;
+      return url.toString();
+    } catch {
+      return "";
+    }
+  }, [callbackUrl, code, state]);
 
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
+  const curl = useMemo(() => {
+    if (!requestUrl) {
+      return "";
+    }
 
-    setTimeout(() => setCopied(false), 2000);
+    return ["curl --request GET \\", `--url '${requestUrl}'`].join("\n");
+  }, [requestUrl]);
+
+  const copyCurl = async () => {
+    if (!curl) return;
+    await navigator.clipboard.writeText(curl);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
   };
 
   const handleAuth = async () => {
-    if (!code) return;
+    const nextErrors = {
+      callbackUrl: callbackUrl ? undefined : "Required",
+
+      request: !requestUrl ? "Invalid callback URL" : undefined,
+    };
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) {
+      return;
+    }
 
     try {
       setLoading(true);
-      setError("");
-
-      const response = await fetch(
-        `${callbackUrl}?code=${encodeURIComponent(code)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
+      const response = await fetch(requestUrl);
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Request failed");
       }
 
       setSuccess(true);
-
-      setTimeout(() => navigate("/"), 5000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      window.setTimeout(() => navigate("/"), 3000);
+    } catch (error) {
+      setErrors({
+        request: error instanceof Error ? error.message : "Request failed",
+      });
     } finally {
       setLoading(false);
     }
   };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center p-2">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-gray-100 py-4 px-8">
-        <div className="flex flex-col items-center text-center">
+    <div className="min-h-screen bg-slate-100 p-6 flex items-center">
+      <div className="mx-auto max-w-7xl rounded-xl bg-white shadow">
+        <div className="border-b p-6 text-center">
           <CheckCircle
-            className={`w-14 h-14 mb-4 ${code && code.length > 0 ? "text-green-500" : "text-red-500"}`}
+            className={`mx-auto mb-3 h-10 w-10 ${
+              code ? "text-green-500" : "text-red-500"
+            }`}
           />
 
-          <h1 className="text-3xl font-bold text-gray-900">
-            OAuth {code && code.length > 0 ? "Successful" : "Failed"}
-          </h1>
-
-          <p className="text-gray-500 mt-2">
-            {code && code.length > 0
-              ? "Authorization code received successfully."
-              : "Authorization code not received."}
-          </p>
+          <h1 className="text-2xl font-bold">Instagram OAuth</h1>
         </div>
+        {code && state ? (
+          <div className="grid grid-cols-2 gap-6 p-6">
+            {/* LEFT */}
 
-        {code ? (
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Authorization Code
-            </label>
+            <div className="space-y-4">
+              <div className="relative rounded border p-4">
+                <h2 className="mb-2 font-semibold">Code</h2>
 
-            <div className="flex items-center gap-2 bg-gray-50 border rounded-lg pl-3">
-              <code className="flex-1 text-sm break-all text-gray-800">
-                {code}
-              </code>
+                <CopyButton value={code} />
 
-              <button
-                onClick={handleCopy}
-                className="hover:cursor-pointer flex items-center gap-2 px-3 py-2 rounded-l-none rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
-              >
-                <Copy size={16} />
-                {copied ? "Copied" : "Copy"}
-              </button>
+                <div className="max-h-48 overflow-auto text-xs break-all">
+                  {code}
+                </div>
+              </div>
+
+              <div className="relative rounded border p-4">
+                <h2 className="mb-2 font-semibold">State</h2>
+
+                <CopyButton value={state} />
+
+                <div className="max-h-48 overflow-auto text-xs break-all">
+                  {state}
+                </div>
+              </div>
             </div>
-            <div className="mt-4 rounded-2xl border border-slate-200 overflow-hidden">
-              <div className="flex items-center justify-between bg-slate-50 px-4 py-3 border-b">
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    Exchange Authorization Code
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Send the OAuth code to your backend
-                  </p>
+
+            {/* RIGHT */}
+
+            <div className="space-y-4 relative">
+              <Input
+                label="Callback URL"
+                value={callbackUrl}
+                onChange={setCallbackUrl}
+                error={errors.callbackUrl}
+              />
+
+              <span
+                className="absolute right-2 top-0 cursor-pointer hover:underline"
+                onClick={() =>
+                  setCallbackUrl(
+                    "http://localhost:8000/api/oauth/instagram/callback",
+                  )
+                }
+              >
+                Reset
+              </span>
+
+              <div className="rounded border">
+                <div className="flex items-center justify-between border-b p-3">
+                  <span className="font-medium">cURL</span>
+
+                  <Button
+                    variant="secondary"
+                    onClick={copyCurl}
+                    disabled={copySuccess}
+                  >
+                    {copySuccess ? "Copied" : "Copy"}
+                  </Button>
                 </div>
 
-                <span className="px-2 py-1 rounded-md bg-green-100 text-green-700 text-xs font-medium">
-                  GET
-                </span>
+                <pre className="overflow-auto bg-slate-950 p-4 text-sm text-green-400">
+                  {curl}
+                </pre>
               </div>
 
-              <div className="p-4 space-y-2">
-                <div>
-                  <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                    Endpoint
-                  </label>
-
-                  <Input
-                    value={callbackUrl}
-                    onChange={setCallbackUrl}
-                    className="mt-2"
-                  />
+              {errors.request && (
+                <div className="rounded border border-red-200 bg-red-50 p-3 text-red-600">
+                  {errors.request}
                 </div>
+              )}
 
-                <div>
-                  <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                    Request Params
-                  </label>
-
-                  <pre className="mt-2 rounded-xl bg-slate-900 p-2 text-sm text-green-400 overflow-auto">
-                    {JSON.stringify({ code }, null, 2)}
-                  </pre>
+              {success && (
+                <div className="rounded border border-green-200 bg-green-50 p-3 text-green-600">
+                  Connected successfully
                 </div>
+              )}
 
-                <Button
-                  onClick={handleAuth}
-                  variant="primary"
-                  disabled={loading}
-                  className="w-full h-11 bg-indigo-600 text-white hover:bg-indigo-700 transition"
-                >
-                  {loading ? "Sending Request..." : "Send Request"}
-                </Button>
-
-                {success && (
-                  <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-600">
-                    Authorization code received successfully.
-                  </div>
-                )}
-                {error && (
-                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                    {error}
-                  </div>
-                )}
-              </div>
+              <Button
+                onClick={handleAuth}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? "Sending..." : "Send Request"}
+              </Button>
             </div>
           </div>
         ) : (
-          <div className="mt-8 p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-center">
+          <div className="mt-6 rounded-xl bg-red-50 border border-red-200 p-4 text-center text-red-600">
             No authorization code found.
           </div>
         )}
