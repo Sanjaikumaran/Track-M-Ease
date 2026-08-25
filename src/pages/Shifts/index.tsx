@@ -450,7 +450,7 @@ const ShiftSessions = () => {
               <div>
                 <p className="text-xs text-gray-400">Bike</p>
                 <p className="font-medium capitalize text-emerald-600">
-                  {`${session.bike?.brand} ${session.bike?.model} (${session.bike?.bike_number?.slice(-4)})`}
+                  {`${session.bike?.model} (${session.bike?.bike_number?.slice(-4)})`}
                 </p>
               </div>
               <div>

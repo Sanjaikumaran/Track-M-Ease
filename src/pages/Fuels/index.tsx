@@ -455,7 +455,7 @@ const FuelPage = () => {
               <div>
                 <p className="text-xs text-gray-400">Bike</p>
                 <p className="font-semibold text-emerald-600">
-                  {`${fuel.bike?.brand} ${fuel.bike?.model} (${fuel.bike?.bike_number?.slice(-4)})`}
+                  {`${fuel.bike?.model} (${fuel.bike?.bike_number?.slice(-4)})`}
                 </p>
               </div>
               <div>

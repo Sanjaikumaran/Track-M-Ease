@@ -79,7 +79,7 @@ const AppLayout = () => {
       subHeader: "Manage your rides",
     },
     {
-      label: "Sift Sessions",
+      label: "Shift Sessions",
       path: "/shifts",
       icon: BellElectric,
       subHeader: "Manage your shift sessions",

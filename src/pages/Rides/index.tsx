@@ -522,7 +522,7 @@ const Rides = () => {
               <div>
                 <p className="text-xs text-gray-400">Bike</p>
                 <p className="font-medium text-emerald-600">
-                  {`${ride.bike?.brand} ${ride.bike?.model} (${ride.bike?.bike_number?.slice(-4)})`}
+                  {`${ride.bike?.model} (${ride.bike?.bike_number?.slice(-4)})`}
                 </p>
               </div>
               <div>
