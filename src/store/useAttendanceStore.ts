@@ -14,30 +14,20 @@ type AttendanceState =
 
 type AttendanceStore = {
   state: AttendanceState;
-
   modalOpen: boolean;
   modalMode: ModalMode;
-
   presentMarked: boolean;
   presentTime: number | null;
-
   snoozedUntil: number | null;
-
   lastSignOutDate: string | null;
-
   setState: (s: AttendanceState) => void;
-
   openModal: (mode: ModalMode) => void;
   closeModal: () => void;
-
   markPresent: () => void;
   markSignOut: () => void;
-
   snooze: (seconds: number) => void;
-
   resetDay: () => void;
   currentDistance: number | null;
-
   setCurrentDistance: (distance: number) => void;
 };
 
@@ -45,30 +35,22 @@ export const useAttendanceStore = create<AttendanceStore>()(
   persist(
     (set) => ({
       state: "idle",
-
       modalOpen: false,
       modalMode: "present",
-
       presentMarked: false,
       presentTime: null,
-
       snoozedUntil: null,
-
       lastSignOutDate: null,
-
       setState: (s) => set({ state: s }),
-
       openModal: (mode) =>
         set({
           modalOpen: true,
           modalMode: mode,
         }),
-
       closeModal: () =>
         set({
           modalOpen: false,
         }),
-
       markPresent: () =>
         set({
           presentMarked: true,
@@ -76,7 +58,6 @@ export const useAttendanceStore = create<AttendanceStore>()(
           state: "present_done",
           modalOpen: false,
         }),
-
       markSignOut: () =>
         set({
           state: "stopped",
@@ -86,7 +67,6 @@ export const useAttendanceStore = create<AttendanceStore>()(
           snoozedUntil: null,
           lastSignOutDate: new Date().toDateString(),
         }),
-
       snooze: (seconds) =>
         set({
           modalOpen: false,
@@ -95,16 +75,12 @@ export const useAttendanceStore = create<AttendanceStore>()(
       resetDay: () =>
         set({
           state: "tracking",
-
           presentMarked: false,
           presentTime: null,
-
           snoozedUntil: null,
-
           modalOpen: false,
         }),
       currentDistance: null,
-
       setCurrentDistance: (distance) =>
         set({
           currentDistance: distance,

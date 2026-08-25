@@ -1,16 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-
 import SupabaseService from "../../lib/supabase";
 import LocalDB from "../../lib/indexDb";
-
 import { useToast } from "../../context/toast";
 import { useDeleteConfirmation } from "../../context/deleteEntry";
-
 import GenericFilters from "../../components/filter";
 import GenericFormModal from "../../components/form";
 import SummaryCardsGrid from "../../components/summaryCard";
 import List from "../../components/list";
-
 import {
   transactionFormConfig,
   transactionFilterConfig,
@@ -21,21 +17,16 @@ import { formatDate, formatTime12Hour } from "../../lib/helpers";
 interface Transaction {
   id?: string;
   created_at?: string;
-
   transaction_date: string;
   transaction_time?: string;
   type: "income" | "expense" | "loan";
-
   amount: number;
-
   category: string;
   subcategory?: string | null;
-
   from_to?: string | null;
   payment_method?: string | null;
   reason?: string | null;
   remarks?: string | null;
-
   user_id?: string;
 }
 
@@ -45,7 +36,6 @@ type FilterState = {
   endDate: string;
   minAmount: string;
   maxAmount: string;
-
   category?: string;
   subcategory?: string;
   from_to?: string;
@@ -91,17 +81,13 @@ const service = new SupabaseService<Transaction>("transactions");
 const Transactions = () => {
   const toast = useToast();
   const { confirmDelete } = useDeleteConfirmation();
-
   const fetchedRef = useRef(false);
-
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
-
   const [formData, setFormData] = useState<Transaction>(initialForm);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
   const [errors, setErrors] = useState(initialErrors);
-
   const [drafts, setDrafts] = useState<Transaction[]>([]);
   const [draftFilters, setDraftFilters] = useState<FilterState>(initialFilters);
   const [appliedFilters, setAppliedFilters] =
@@ -111,19 +97,16 @@ const Transactions = () => {
   const fetchTransactions = async (refresh: boolean = false) => {
     setLoading(true);
     setShowDrafts(false);
-
     const { data, error } = await service.getAll(
       refresh,
       ["transaction_date", "transaction_time"],
       "desc",
     );
-
     if (error) {
       toast.error(error.message);
       setLoading(false);
       return;
     }
-
     setTransactions(data || []);
     setLoading(false);
   };
@@ -137,25 +120,20 @@ const Transactions = () => {
 
   const validate = (data: Transaction) => {
     const err = { ...initialErrors };
-
     if (!data.transaction_date)
       err.transaction_date = "Transaction date is required";
     if (!data.type) err.type = "Type is required";
     if (!data.category) err.category = "Category is required";
     if (!data.payment_method) err.payment_method = "Payment method is required";
     if (!data.amount || data.amount <= 0) err.amount = "Invalid amount";
-
     setErrors(err);
     return !Object.values(err).some(Boolean);
   };
 
   const saveTransaction = async (data: Transaction) => {
     if (!validate(data)) return false;
-
-    if (showDrafts && editingTransaction) {
+    if (showDrafts && editingTransaction)
       await LocalDB.remove("transactions", editingTransaction.id!);
-    }
-
     const payload = {
       ...data,
       category: data.category?.toLowerCase(),
@@ -164,7 +142,6 @@ const Transactions = () => {
       payment_method: data.payment_method?.toLowerCase(),
       reason: data.reason?.toLowerCase(),
     };
-
     const { error } =
       editingTransaction && !showDrafts
         ? await service.update(editingTransaction.id!, payload)
@@ -174,11 +151,9 @@ const Transactions = () => {
       toast.error(error.message);
       return;
     }
-
     toast.success(
       editingTransaction ? "Updated successfully" : "Created successfully",
     );
-
     setEditingTransaction(null);
     setErrors(initialErrors);
     fetchTransactions(true);
@@ -192,12 +167,10 @@ const Transactions = () => {
       confirmVariant: "danger",
       onConfirm: async () => {
         const { error } = await service.delete(id);
-
         if (error) {
           toast.error(error.message);
           return;
         }
-
         toast.success("Deleted successfully");
         fetchTransactions();
       },
@@ -209,22 +182,18 @@ const Transactions = () => {
       typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
         : Math.random().toString(36).substring(2) + Date.now().toString(36);
-
     const draft = {
       ...t,
       id,
       created_at: new Date().toISOString(),
     };
-
     await LocalDB.create("transactions", draft);
-
     toast.success("Saved as draft");
   };
 
   const getAllDrafts = async () => {
     setShowDrafts(true);
     const drafts = await LocalDB.getAll("transactions");
-
     setDrafts(drafts || []);
   };
 
@@ -236,9 +205,7 @@ const Transactions = () => {
       confirmVariant: "danger",
       onConfirm: async () => {
         await LocalDB.remove("transactions", id);
-
         toast.success("Draft deleted");
-
         setShowDrafts(false);
         fetchTransactions();
       },
@@ -249,7 +216,6 @@ const Transactions = () => {
     const data = showDrafts ? drafts : transactions;
     return data.filter((t) => {
       const f = appliedFilters;
-
       return (
         (f.type === "all" || t.type === f.type) &&
         (!f.startDate || t.transaction_date >= f.startDate) &&
@@ -301,7 +267,6 @@ const Transactions = () => {
     const category =
       draftFilters.category?.toLowerCase() || formData.category?.toLowerCase();
     if (!category) return [];
-
     return [
       ...new Set(
         transactions
@@ -325,13 +290,10 @@ const Transactions = () => {
   const fromToOptions = useMemo(() => {
     const category =
       draftFilters.category?.toLowerCase() || formData.category?.toLowerCase();
-
     const subcategory =
       draftFilters.subcategory?.toLowerCase() ||
       formData.subcategory?.toLowerCase();
-
     if (!category) return [];
-
     return [
       ...new Set(
         transactions
@@ -355,11 +317,9 @@ const Transactions = () => {
   const reasons = useMemo(() => {
     const category =
       draftFilters.category?.toLowerCase() || formData.category?.toLowerCase();
-
     const subcategory =
       draftFilters.subcategory?.toLowerCase() ||
       formData.subcategory?.toLowerCase();
-
     if (!category) return [];
     return [
       ...new Set(
@@ -384,27 +344,13 @@ const Transactions = () => {
   const formConfig = useMemo(() => {
     return transactionFormConfig.map((field) => {
       if (field.type !== "combobox") return field;
-
-      if (field.key === "category") {
-        return { ...field, options: categories };
-      }
-
-      if (field.key === "subcategory") {
+      if (field.key === "category") return { ...field, options: categories };
+      if (field.key === "subcategory")
         return { ...field, options: subcategories };
-      }
-
-      if (field.key === "from_to") {
-        return { ...field, options: fromToOptions };
-      }
-
-      if (field.key === "payment_method") {
+      if (field.key === "from_to") return { ...field, options: fromToOptions };
+      if (field.key === "payment_method")
         return { ...field, options: paymentMethods };
-      }
-
-      if (field.key === "reason") {
-        return { ...field, options: reasons };
-      }
-
+      if (field.key === "reason") return { ...field, options: reasons };
       return field;
     });
   }, [categories, subcategories, fromToOptions, paymentMethods, reasons]);
@@ -412,42 +358,31 @@ const Transactions = () => {
   const filterConfig = useMemo(() => {
     return transactionFilterConfig.map((field) => {
       if (field.type !== "select") return field;
-
-      if (field.key === "category") {
+      if (field.key === "category")
         return {
           ...field,
           options: categories.map((c) => ({ label: c, value: c })),
         };
-      }
-
-      if (field.key === "subcategory") {
+      if (field.key === "subcategory")
         return {
           ...field,
           options: subcategories.map((s) => ({ label: s, value: s })),
         };
-      }
-
-      if (field.key === "from_to") {
+      if (field.key === "from_to")
         return {
           ...field,
           options: fromToOptions.map((f) => ({ label: f, value: f })),
         };
-      }
-
-      if (field.key === "payment_method") {
+      if (field.key === "payment_method")
         return {
           ...field,
           options: paymentMethods.map((p) => ({ label: p, value: p })),
         };
-      }
-
-      if (field.key === "reason") {
+      if (field.key === "reason")
         return {
           ...field,
           options: reasons.map((r) => ({ label: r, value: r })),
         };
-      }
-
       return field;
     });
   }, [categories, subcategories, fromToOptions, paymentMethods, reasons]);
@@ -457,10 +392,8 @@ const Transactions = () => {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold">Transactions Summary</h2>
-
             <p className="text-sm text-gray-500">Daily transactions overview</p>
           </div>
-
           <div className="flex gap-2">
             <GenericFilters
               title="Transaction Filters"
@@ -475,7 +408,6 @@ const Transactions = () => {
                 setDraftFilters(appliedFilters);
               }}
             />
-
             <GenericFormModal
               title={
                 editingTransaction && !showDrafts
@@ -514,7 +446,6 @@ const Transactions = () => {
           cols={4}
         />
       </div>
-
       <List
         header="Transaction History"
         items={filtered}
@@ -537,12 +468,10 @@ const Transactions = () => {
                 <h3 className="text-xl font-bold capitalize text-gray-900">
                   {t.category}
                 </h3>
-
                 <p className="mt-1 text-sm text-gray-500 capitalize">
                   {t.subcategory || "-"}
                 </p>
               </div>
-
               <div className="text-right">
                 <p
                   className={`text-xl font-bold ${
@@ -555,11 +484,9 @@ const Transactions = () => {
                 >
                   ₹{Number(t.amount || 0).toFixed(2)}
                 </p>
-
                 <p className="text-xs text-gray-400 capitalize">{t.type}</p>
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-3 text-sm">
               <div>
                 <p className="text-xs text-gray-400">Date</p>
@@ -567,14 +494,12 @@ const Transactions = () => {
                   {formatDate(t.transaction_date)}
                 </p>
               </div>
-
               <div>
                 <p className="text-xs text-gray-400">Time</p>
                 <p className="font-medium text-gray-700 capitalize">
                   {formatTime12Hour(t.transaction_time) || "-"}
                 </p>
               </div>
-
               <div>
                 <p className="text-xs text-gray-400">
                   {t.type === "income" ? "From" : "To"}
@@ -583,15 +508,14 @@ const Transactions = () => {
                   {t.from_to || "-"}
                 </p>
               </div>
-
               <div>
+                {" "}
                 <p className="text-xs text-gray-400">Reason</p>
                 <p className="font-medium text-gray-700 capitalize">
                   {t.reason || "-"}
                 </p>
               </div>
             </div>
-
             <div className="flex items-center justify-between gap-2">
               <span className="capitalize rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
                 {t.payment_method || "Upi"}
@@ -603,15 +527,12 @@ const Transactions = () => {
                 >
                   Edit
                 </button>
-
                 <button
-                  onClick={() => {
-                    if (showDrafts) {
-                      deleteDraft(t.id || "");
-                      return;
-                    }
-                    deleteTransaction(t.id || "");
-                  }}
+                  onClick={() =>
+                    showDrafts
+                      ? deleteDraft(t.id || "")
+                      : deleteTransaction(t.id || "")
+                  }
                   className="hover:cursor-pointer rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100"
                 >
                   Delete

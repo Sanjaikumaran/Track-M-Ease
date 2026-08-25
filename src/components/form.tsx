@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
-
 import Modal from "./ui/modal";
 import Input from "./ui/input";
 import Textarea from "./ui/textarea";
@@ -96,18 +95,14 @@ const GenericFormModal = <T extends object>({
   const handleSumbit = async () => {
     setLoading(true);
     const success = await onSubmit(formState);
-    if (success !== false) {
-      setIsOpen(false);
-    }
+    if (success !== false) setIsOpen(false);
     setLoading(false);
   };
 
   const handleDraft = async () => {
     setLoading(true);
     const success = await onDraft?.(formState);
-    if (success !== false) {
-      setIsOpen(false);
-    }
+    if (success !== false) setIsOpen(false);
     setLoading(false);
   };
 
@@ -128,7 +123,6 @@ const GenericFormModal = <T extends object>({
       >
         {triggerLabel}
       </Button>
-
       <Modal
         open={isOpen}
         onClose={handleClose}
@@ -158,11 +152,8 @@ const GenericFormModal = <T extends object>({
         <div className="grid grid-cols-2 gap-4">
           {config.map((field) => {
             const value = formState[field.key as keyof T];
-
             const error = errors?.[field.key as keyof T];
-
             const colSpan = field.colSpan === 2 ? "col-span-2" : "col-span-1";
-
             switch (field.type) {
               case "textarea":
                 return (
@@ -178,7 +169,6 @@ const GenericFormModal = <T extends object>({
                     />
                   </div>
                 );
-
               case "select":
                 return (
                   <div key={field.key} className={colSpan}>
@@ -192,14 +182,12 @@ const GenericFormModal = <T extends object>({
                     />
                   </div>
                 );
-
               case "toggle":
                 return (
                   <div key={field.key} className={colSpan}>
                     <label className="mb-2 block text-sm font-medium text-gray-700">
                       {field.label}
                     </label>
-
                     <button
                       type="button"
                       onClick={() =>
@@ -220,7 +208,6 @@ const GenericFormModal = <T extends object>({
                     </button>
                   </div>
                 );
-
               case "combobox":
                 return (
                   <div key={field.key} className={colSpan}>

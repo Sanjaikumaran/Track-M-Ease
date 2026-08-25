@@ -9,7 +9,6 @@ class AppDatabase<T> extends Dexie {
 
   constructor() {
     super("MyAppDatabase");
-
     this.version(1).stores({
       drafts: "++id, updatedAt",
       transactions: "++id, createdAt",
@@ -21,13 +20,11 @@ class AppDatabase<T> extends Dexie {
 
   async create(tableName: keyof AppDatabase<T>, data: T) {
     const table = this.table(tableName as string);
-
     return await table.add(data);
   }
 
   async bulkCreate(tableName: keyof AppDatabase<T>, data: T[]) {
     const table = this.table(tableName as string);
-
     return await table.bulkAdd(data);
   }
 
@@ -37,45 +34,37 @@ class AppDatabase<T> extends Dexie {
     data: Partial<T>,
   ) {
     const table = this.table(tableName as string);
-
     return await table.update(id, data);
   }
 
   async getById(tableName: keyof AppDatabase<T>, id: number | string) {
     const table = this.table(tableName as string);
-
     return await table.get(id);
   }
 
   async getAll(tableName: keyof AppDatabase<T>) {
     const table = this.table(tableName as string);
-
     return await table.toArray();
   }
 
   async remove(tableName: keyof AppDatabase<T>, id: number | string) {
     const table = this.table(tableName as string);
-
     return await table.delete(id);
   }
 
   async clear(tableName: keyof AppDatabase<T>) {
     const table = this.table(tableName as string);
-
     return await table.clear();
   }
 
   async count(tableName: keyof AppDatabase<T>) {
     const table = this.table(tableName as string);
-
     return await table.count();
   }
 
   async exists(tableName: keyof AppDatabase<T>, id: number | string) {
     const table = this.table(tableName as string);
-
     const item = await table.get(id);
-
     return !!item;
   }
 
@@ -84,19 +73,16 @@ class AppDatabase<T> extends Dexie {
     callback: (item: T) => boolean,
   ) {
     const table = this.table(tableName as string);
-
     return await table.filter(callback).toArray();
   }
 
   async sortBy(tableName: keyof AppDatabase<T>, key: string) {
     const table = this.table(tableName as string);
-
     return await table.orderBy(key).toArray();
   }
 
   async clearDatabase() {
     const tables = this.tables;
-
     await Promise.all(tables.map((table) => table.clear()));
   }
 }

@@ -7,7 +7,6 @@ type BaseEntity = {
 
 class SupabaseService<T extends BaseEntity> {
   private tableName: string;
-
   private cache: T[] = [];
 
   constructor(tableName: string) {
@@ -18,7 +17,6 @@ class SupabaseService<T extends BaseEntity> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
     return user?.id;
   }
 
@@ -34,11 +32,9 @@ class SupabaseService<T extends BaseEntity> {
         error: null,
       };
     }
-
     const fields = selectFields.length > 0 ? selectFields.join(",") : "*";
-
     let query = supabase.from(this.tableName).select(fields);
-
+    console.log("Query:", query);
     if (sortBy?.length) {
       sortBy.forEach((field) => {
         query = query.order(field, {
@@ -46,11 +42,8 @@ class SupabaseService<T extends BaseEntity> {
         });
       });
     }
-
     const response = await query;
-
     this.cache = (response.data ?? []) as unknown as T[];
-
     return {
       data: this.cache,
       error: response.error,
@@ -60,15 +53,12 @@ class SupabaseService<T extends BaseEntity> {
   async getById(id: string) {
     if (this.cache.length) {
       const item = this.cache.find((x) => x.id === id);
-
-      if (item) {
+      if (item)
         return {
           data: item,
           error: null,
         };
-      }
     }
-
     return await supabase
       .from(this.tableName)
       .select("*")
@@ -78,23 +68,17 @@ class SupabaseService<T extends BaseEntity> {
 
   async create(data: Omit<T, "id">) {
     const userId = await this.getCurrentUserId();
-
     const payload = {
       ...data,
       user_id: userId,
       id: undefined,
     };
-
     const response = await supabase
       .from(this.tableName)
       .insert(payload as T)
       .select()
       .single();
-
-    if (response.data) {
-      this.cache.unshift(response.data as unknown as T);
-    }
-
+    if (response.data) this.cache.unshift(response.data as unknown as T);
     return response;
   }
 
@@ -105,21 +89,16 @@ class SupabaseService<T extends BaseEntity> {
       .eq("id", id)
       .select()
       .single();
-
-    if (response.data) {
+    if (response.data)
       this.cache = this.cache.map((item) =>
         item.id === id ? (response.data as unknown as T) : item,
       );
-    }
-
     return response;
   }
 
   async delete(id: string) {
     const response = await supabase.from(this.tableName).delete().eq("id", id);
-
     this.cache = this.cache.filter((item) => item.id !== id);
-
     return response;
   }
 

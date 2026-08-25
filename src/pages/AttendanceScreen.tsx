@@ -6,9 +6,7 @@ import { useAttendanceEngine } from "../hooks/useAttendanceEngine";
 
 const AttendanceScreen = () => {
   const toast = useToast();
-
   const config = useConfigStore((s) => s.config);
-
   const {
     modalOpen,
     modalMode,
@@ -17,9 +15,7 @@ const AttendanceScreen = () => {
     snooze,
     currentDistance,
   } = useAttendanceStore();
-
   useAttendanceEngine();
-
   return (
     <ReminderModal
       open={modalOpen}
@@ -37,7 +33,6 @@ const AttendanceScreen = () => {
       }}
       onSnooze={() => {
         toast.info(`Snoozed for ${config.snoozeUntil} seconds`);
-
         snooze(config.snoozeUntil);
       }}
     />

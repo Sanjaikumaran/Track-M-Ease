@@ -11,7 +11,6 @@ const DeleteConfirmationProvider = ({
   children: React.ReactNode;
 }) => {
   const resolverRef = useRef<(() => void) | null>(null);
-
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState<ConfirmOptions | null>(null);
   const [open, setOpen] = useState(false);
@@ -19,7 +18,6 @@ const DeleteConfirmationProvider = ({
   const confirmDelete = useCallback((options: ConfirmOptions) => {
     setOptions(options);
     setOpen(true);
-
     return new Promise<void>((resolve) => {
       resolverRef.current = resolve;
     });
@@ -27,11 +25,9 @@ const DeleteConfirmationProvider = ({
 
   const handleConfirm = async () => {
     if (!options) return;
-
     try {
       setLoading(true);
       await options.onConfirm();
-
       resolverRef.current?.();
       setOpen(false);
     } finally {
@@ -39,14 +35,11 @@ const DeleteConfirmationProvider = ({
     }
   };
 
-  const handleCancel = () => {
-    setOpen(false);
-  };
+  const handleCancel = () => setOpen(false);
 
   return (
     <DeleteConfirmationContext.Provider value={{ confirmDelete }}>
       {children}
-
       <ConfirmationModal
         open={open}
         title={options?.title || ""}

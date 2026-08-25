@@ -45,14 +45,8 @@ const OAuth = () => {
   const requestUrl = useMemo(() => {
     try {
       const url = new URL(callbackUrl);
-      if (code) {
-        url.searchParams.set("code", code);
-      }
-
-      if (state) {
-        url.searchParams.set("state", state);
-      }
-
+      if (code) url.searchParams.set("code", code);
+      if (state) url.searchParams.set("state", state);
       return url.toString();
     } catch {
       return "";
@@ -60,11 +54,9 @@ const OAuth = () => {
   }, [callbackUrl, code, state]);
 
   const curl = useMemo(() => {
-    if (!requestUrl) {
-      return "";
-    }
-
-    return ["curl --request GET \\", `--url '${requestUrl}'`].join("\n");
+    return !requestUrl
+      ? ""
+      : ["curl --request GET \\", `--url '${requestUrl}'`].join("\n");
   }, [requestUrl]);
 
   const copyCurl = async () => {
@@ -77,22 +69,15 @@ const OAuth = () => {
   const handleAuth = async () => {
     const nextErrors = {
       callbackUrl: callbackUrl ? undefined : "Required",
-
       request: !requestUrl ? "Invalid callback URL" : undefined,
     };
     setErrors(nextErrors);
-    if (Object.values(nextErrors).some(Boolean)) {
-      return;
-    }
-
+    if (Object.values(nextErrors).some(Boolean)) return;
     try {
       setLoading(true);
       const response = await fetch(requestUrl);
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Request failed");
-      }
-
+      if (!response.ok) throw new Error(data.message || "Request failed");
       setSuccess(true);
       window.setTimeout(() => navigate("/"), 3000);
     } catch (error) {
@@ -112,37 +97,28 @@ const OAuth = () => {
               code ? "text-green-500" : "text-red-500"
             }`}
           />
-
           <h1 className="text-2xl font-bold">Instagram OAuth</h1>
         </div>
         {code && state ? (
           <div className="grid grid-cols-2 gap-6 p-6">
             {/* LEFT */}
-
             <div className="space-y-4">
               <div className="relative rounded border p-4">
                 <h2 className="mb-2 font-semibold">Code</h2>
-
                 <CopyButton value={code} />
-
                 <div className="max-h-48 overflow-auto text-xs break-all">
                   {code}
                 </div>
               </div>
-
               <div className="relative rounded border p-4">
                 <h2 className="mb-2 font-semibold">State</h2>
-
                 <CopyButton value={state} />
-
                 <div className="max-h-48 overflow-auto text-xs break-all">
                   {state}
                 </div>
               </div>
             </div>
-
             {/* RIGHT */}
-
             <div className="space-y-4 relative">
               <Input
                 label="Callback URL"
@@ -150,7 +126,6 @@ const OAuth = () => {
                 onChange={setCallbackUrl}
                 error={errors.callbackUrl}
               />
-
               <span
                 className="absolute right-2 top-0 cursor-pointer hover:underline"
                 onClick={() =>
@@ -159,9 +134,9 @@ const OAuth = () => {
                   )
                 }
               >
+                {" "}
                 Reset
               </span>
-
               <div className="rounded border">
                 <div className="flex items-center justify-between border-b p-3">
                   <span className="font-medium">cURL</span>
@@ -179,19 +154,16 @@ const OAuth = () => {
                   {curl}
                 </pre>
               </div>
-
               {errors.request && (
                 <div className="rounded border border-red-200 bg-red-50 p-3 text-red-600">
                   {errors.request}
                 </div>
               )}
-
               {success && (
                 <div className="rounded border border-green-200 bg-green-50 p-3 text-green-600">
                   Connected successfully
                 </div>
               )}
-
               <Button
                 onClick={handleAuth}
                 disabled={loading}

@@ -1,15 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import SupabaseService from "../../lib/supabase";
 import LocalDB from "../../lib/indexDb";
-
 import { useToast } from "../../context/toast";
 import { useDeleteConfirmation } from "../../context/deleteEntry";
-
 import GenericFilters from "../../components/filter";
 import GenericFormModal from "../../components/form";
 import SummaryCardsGrid from "../../components/summaryCard";
 import List from "../../components/list";
-
 import { fuelFilterConfig, fuelFormConfig, fuelSummaryConfig } from "./config";
 import { formatDate, formatTime12Hour } from "../../lib/helpers";
 
@@ -67,29 +64,23 @@ const fuelService = new SupabaseService<FuelEntry>("fuel_entries");
 const FuelPage = () => {
   const toast = useToast();
   const { confirmDelete } = useDeleteConfirmation();
-
   const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [editingFuel, setEditingFuel] = useState<FuelEntry | null>(null);
   const [appliedFilters, setAppliedFilters] =
     useState<FilterState>(initialFilters);
   const [showDrafts, setShowDrafts] = useState(false);
-
   const [errors, setErrors] = useState<Record<string, string>>(initialErrors);
-
   const fetchedRef = useRef<boolean>(false);
-
   const fetchFuels = async (refresh: boolean = false) => {
     setLoading(true);
     setShowDrafts(false);
-
     try {
       const { data, error } = await fuelService.getAll(
         refresh,
         ["fuel_date", "fuel_time"],
         "desc",
       );
-
       if (error) {
         toast.error(error.message);
         return;
@@ -99,7 +90,6 @@ const FuelPage = () => {
           new Date(`${a.fuel_date}T${a.fuel_time || "00:00"}`).getTime() -
           new Date(`${b.fuel_date}T${b.fuel_time || "00:00"}`).getTime(),
       );
-
       const result = sorted.map((entry, i) => {
         if (i === 0) {
           return {
@@ -108,14 +98,10 @@ const FuelPage = () => {
             mileage_per_litre: null,
           };
         }
-
         const prev = sorted[i - 1];
-
         const travelled = Number(entry.odometer_km) - Number(prev.odometer_km);
-
         const mileage =
           prev.litres > 0 ? travelled / Number(entry.litres) : null;
-
         return {
           ...entry,
           travelled_km: travelled > 0 ? travelled : null,
@@ -123,7 +109,6 @@ const FuelPage = () => {
         };
       });
       const displayData = result.reverse();
-
       setFuelEntries(displayData);
     } catch (err: unknown) {
       toast.error(`${err || "Failed to fetch fuel entries"}`);
@@ -136,7 +121,6 @@ const FuelPage = () => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
     fetchFuels();
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -148,41 +132,32 @@ const FuelPage = () => {
       amount: "",
       odometer_km: "",
     };
-
     if (!data.fuel_date) err.fuel_date = "Fuel date is required";
     if (!data.fuel_time) err.fuel_time = "Fuel time is required";
-
     if (Number(data.litres) <= 0) err.litres = "Litres must be > 0";
     if (Number(data.amount) <= 0) err.amount = "Amount must be > 0";
     if (Number(data.odometer_km) <= 0) err.odometer_km = "KM must be > 0";
-
     if (Number(data.odometer_km) > 999999)
       err.odometer_km = "KM seems too high";
-
     const currentIndex = fuelEntries.findIndex((s) => s.id === editingFuel?.id);
-
     const previousSession =
       currentIndex >= 0 ? fuelEntries[currentIndex + 1] : fuelEntries[0];
-
-    if (previousSession?.odometer_km) {
-      if (Number(data.odometer_km) <= Number(previousSession.odometer_km)) {
-        err.odometer_km =
-          "KM must be greater than previous entry (" +
-          previousSession.odometer_km +
-          " KM)";
-      }
-    }
-
+    if (
+      previousSession?.odometer_km &&
+      Number(data.odometer_km) <= Number(previousSession.odometer_km)
+    )
+      err.odometer_km =
+        "KM must be greater than previous entry (" +
+        previousSession.odometer_km +
+        " KM)";
     setErrors(err);
     return !Object.values(err).some(Boolean);
   };
 
   const saveFuelEntry = async (data: FuelEntry) => {
     if (!validateForm(data)) return false;
-
-    if (showDrafts && editingFuel) {
+    if (showDrafts && editingFuel)
       await LocalDB.remove("fuels", editingFuel.id!);
-    }
     const payload = {
       fuel_date: data.fuel_date,
       fuel_time: data.fuel_time,
@@ -194,25 +169,18 @@ const FuelPage = () => {
     };
 
     try {
-      let error;
+      let res;
+      if (editingFuel && !showDrafts)
+        res = await fuelService.update(editingFuel.id!, payload);
+      else res = await fuelService.create(payload);
 
-      if (editingFuel && !showDrafts) {
-        const res = await fuelService.update(editingFuel.id!, payload);
-        error = res.error;
-      } else {
-        const res = await fuelService.create(payload);
-        error = res.error;
-      }
-
-      if (error) {
-        toast.error(error.message);
+      if (res.error) {
+        toast.error(res.error.message);
         return;
       }
-
       toast.success(
         `Fuel entry ${editingFuel ? "updated" : "added"} successfully`,
       );
-
       setEditingFuel(null);
       fetchFuels(true);
     } catch (err: unknown) {
@@ -228,12 +196,10 @@ const FuelPage = () => {
       confirmVariant: "danger",
       onConfirm: async () => {
         const { error } = await fuelService.delete(id);
-
         if (error) {
           toast.error(error.message);
           return;
         }
-
         toast.success("Fuel entry deleted");
         fetchFuels();
       },
@@ -245,22 +211,18 @@ const FuelPage = () => {
       typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
         : Math.random().toString(36).substring(2) + Date.now().toString(36);
-
     const draft = {
       ...fuel,
       id,
       created_at: new Date().toISOString(),
     };
-
     await LocalDB.create("fuels", draft);
-
     toast.success("Saved as draft");
   };
 
   const getAllDrafts = async () => {
     setShowDrafts(true);
     const drafts = await LocalDB.getAll("fuels");
-
     setFuelEntries(drafts || []);
   };
 
@@ -272,9 +234,7 @@ const FuelPage = () => {
       confirmVariant: "danger",
       onConfirm: async () => {
         await LocalDB.remove("fuels", id);
-
         toast.success("Draft deleted");
-
         setShowDrafts(false);
         fetchFuels();
       },
@@ -285,18 +245,14 @@ const FuelPage = () => {
     return fuelEntries.filter((fuel) => {
       const start =
         !appliedFilters.startDate || fuel.fuel_date >= appliedFilters.startDate;
-
       const end =
         !appliedFilters.endDate || fuel.fuel_date <= appliedFilters.endDate;
-
       const amount =
         (!appliedFilters.minAmount ||
           fuel.amount >= Number(appliedFilters.minAmount)) &&
         (!appliedFilters.maxAmount ||
           fuel.amount <= Number(appliedFilters.maxAmount));
-
       const fullTank = !appliedFilters.fullTankOnly || fuel.is_full_tank;
-
       return start && end && amount && fullTank;
     });
   }, [fuelEntries, appliedFilters]);
@@ -307,9 +263,7 @@ const FuelPage = () => {
         acc.totalFuelCost += Number(f.amount || 0);
         acc.totalLitres += Number(f.litres || 0);
         acc.totalEntries += 1;
-
         if (f.travelled_km) acc.totalTravelledKm += Number(f.travelled_km);
-
         return acc;
       },
       {
@@ -332,10 +286,8 @@ const FuelPage = () => {
         <div className="mb-4 flex items-center justify-between ">
           <div>
             <h2 className="text-xl font-bold">Fuel Summary</h2>
-
             <p className="text-sm text-gray-500">Fuel consumption overview</p>
           </div>
-
           <div className="flex gap-2">
             <GenericFilters
               title="Fuel Filters"
@@ -344,7 +296,6 @@ const FuelPage = () => {
               initialFilters={initialFilters}
               config={fuelFilterConfig}
             />
-
             <GenericFormModal
               config={fuelFormConfig}
               title={
@@ -365,7 +316,6 @@ const FuelPage = () => {
             />
           </div>
         </div>
-
         <SummaryCardsGrid
           loading={loading}
           config={fuelSummaryConfig}
@@ -378,7 +328,6 @@ const FuelPage = () => {
           cols={4}
         />
       </div>
-
       <List
         header="Fuel History"
         items={filteredFuelEntries}
@@ -391,6 +340,7 @@ const FuelPage = () => {
           },
         ]}
       >
+        {" "}
         {filteredFuelEntries.map((fuel) => (
           <div
             key={fuel.id}
@@ -401,60 +351,47 @@ const FuelPage = () => {
                 <h3 className="text-xl font-bold text-gray-900">
                   ₹{Number(fuel.amount).toFixed(2)}
                 </h3>
-
                 <p className="mt-1 text-sm text-gray-500">
                   {fuel.litres} Litres
                 </p>
               </div>
-
               <div className="text-right">
                 <p className="text-base font-semibold text-indigo-600">
                   ₹{(Number(fuel.amount) / Number(fuel.litres)).toFixed(2)}
                   /L
                 </p>
-
                 <p className="text-xs text-gray-400">Price per litre</p>
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-3 text-sm">
               <div>
                 <p className="text-xs text-gray-400">Date</p>
-
                 <p className="font-medium text-gray-700">
                   {formatDate(fuel.fuel_date)}
                 </p>
               </div>
-
               <div>
                 <p className="text-xs text-gray-400">Time</p>
-
                 <p className="font-medium text-gray-700">
                   {formatTime12Hour(fuel.fuel_time)}
                 </p>
               </div>
-
               <div>
                 <p className="text-xs text-gray-400">Odometer</p>
-
                 <p className="font-medium text-gray-700">
                   {fuel.odometer_km || 0} KM
                 </p>
               </div>
-
               <div>
                 <p className="text-xs text-gray-400">Travelled</p>
-
                 <p className="font-medium text-gray-700">
                   {fuel.travelled_km
                     ? `${fuel.travelled_km.toFixed(2)} KM`
                     : "-"}
                 </p>
               </div>
-
               <div className="col-span-2">
                 <p className="text-xs text-gray-400">Mileage</p>
-
                 <p className="font-semibold text-emerald-600">
                   {fuel.mileage_per_litre
                     ? `${fuel.mileage_per_litre.toFixed(2)} KM/L`
@@ -462,7 +399,6 @@ const FuelPage = () => {
                 </p>
               </div>
             </div>
-
             <div className="flex items-center justify-between gap-3">
               <span
                 className={`rounded-full px-3 py-1 text-xs font-semibold ${
@@ -473,7 +409,6 @@ const FuelPage = () => {
               >
                 {fuel.is_full_tank ? "Full Tank" : "Partial Tank"}
               </span>
-
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setEditingFuel(fuel)}
@@ -481,7 +416,6 @@ const FuelPage = () => {
                 >
                   Edit
                 </button>
-
                 <button
                   onClick={() => {
                     if (showDrafts) {
@@ -496,7 +430,6 @@ const FuelPage = () => {
                 </button>
               </div>
             </div>
-
             {fuel.remarks && (
               <div className="border-t border-gray-100 pt-3">
                 <p className="text-sm leading-relaxed text-gray-600">

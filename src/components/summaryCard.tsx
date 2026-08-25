@@ -40,11 +40,9 @@ const SummaryCardsGrid = <T extends Record<string, string | number>>({
     <div className={`grid w-full gap-4 ${gridCols[cols as 1 | 2 | 3 | 4]}`}>
       {config.map((item) => {
         const rawValue = data[item.key];
-
         const value = item.formatter
           ? item.formatter(rawValue)
           : String(rawValue ?? "-");
-
         return (
           <SummaryCard
             key={item.key}
@@ -84,7 +82,6 @@ const SummaryCard = ({
   loading = false,
 }: SummaryCardProps) => {
   const Icon = icon;
-
   const colors = {
     green: "bg-green-50 text-green-700",
     red: "bg-red-50 text-red-700",
@@ -100,12 +97,10 @@ const SummaryCard = ({
     <div className="rounded-xl border bg-gray-50 p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">{title}</p>
-
         <div className={`rounded-lg p-2 ${colors[color]}`}>
           <Icon color={color} />
         </div>
       </div>
-
       <h2 className="mt-2 text-2xl font-bold">
         {!loading ? value : <Loader className="animate-spin" />}
       </h2>

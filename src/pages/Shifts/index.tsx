@@ -1,11 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-
 import SupabaseService from "../../lib/supabase";
 import LocalDB from "../../lib/indexDb";
-
 import { useToast } from "../../context/toast";
 import { useDeleteConfirmation } from "../../context/deleteEntry";
-
 import GenericFilters from "../../components/filter";
 import GenericFormModal from "../../components/form";
 import SummaryCardsGrid from "../../components/summaryCard";
@@ -43,13 +40,9 @@ interface ShiftSession {
 
 type FilterState = {
   shift: string;
-
   startDate: string;
-
   endDate: string;
-
   minDistance: string;
-
   maxDistance: string;
 };
 
@@ -84,11 +77,8 @@ const initialErrors = {
 const shiftService = new SupabaseService<ShiftSession>("shift_sessions");
 const ShiftSessions = () => {
   const toast = useToast();
-
   const { confirmDelete } = useDeleteConfirmation();
-
   const fetchedRef = useRef(false);
-
   const [sessions, setSessions] = useState<ShiftSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingSession, setEditingSession] = useState<ShiftSession | null>(
@@ -102,19 +92,16 @@ const ShiftSessions = () => {
   const fetchSessions = async (refresh: boolean = false) => {
     setLoading(true);
     setShowDrafts(false);
-
     try {
       const { data, error } = await shiftService.getAll(
         refresh,
         ["shift_date", "shift_start_time"],
         "desc",
       );
-
       if (error) {
         toast.error(error.message);
         return;
       }
-
       setSessions(data || []);
     } catch (err: unknown) {
       toast.error(`${err || "Failed to fetch shift sessions"}`);
@@ -124,12 +111,8 @@ const ShiftSessions = () => {
   };
 
   useEffect(() => {
-    if (fetchedRef.current) {
-      return;
-    }
-
+    if (fetchedRef.current) return;
     fetchedRef.current = true;
-
     fetchSessions();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -145,56 +128,31 @@ const ShiftSessions = () => {
       shift_end_time: "",
       remarks: "",
     };
-
-    if (!data.shift_date) {
-      newErrors.shift_date = "Shift date is required";
-    }
-
-    if (!data.shift) {
-      newErrors.shift = "Shift is required";
-    }
-
-    if (Number(data.start_km || 0) < 0) {
+    if (!data.shift_date) newErrors.shift_date = "Shift date is required";
+    if (!data.shift) newErrors.shift = "Shift is required";
+    if (Number(data.start_km || 0) < 0)
       newErrors.start_km = "Start KM cannot be negative";
-    }
-
-    if (Number(data.end_km || 0) < 0) {
+    if (Number(data.end_km || 0) < 0)
       newErrors.end_km = "End KM cannot be negative";
-    }
-
-    if (Number(data.end_km || 0) < Number(data.start_km || 0)) {
+    if (Number(data.end_km || 0) < Number(data.start_km || 0))
       newErrors.end_km = "End KM must be greater than Start KM";
-    }
-
-    if (data.remarks && data.remarks.length > 300) {
+    if (data.remarks && data.remarks.length > 300)
       newErrors.remarks = "Remarks cannot exceed 300 characters";
-    }
 
     const currentIndex = sessions.findIndex((s) => s.id === editingSession?.id);
-
     const previousSession =
       currentIndex >= 0 ? sessions[currentIndex + 1] : sessions[0];
 
-    if (
-      previousSession &&
-      Number(data.start_km || 0) < previousSession.end_km!
-    ) {
+    if (previousSession && Number(data.start_km || 0) < previousSession.end_km!)
       newErrors.start_km = `Start KM cannot be less than previous recorded KM (${previousSession.end_km})`;
-    }
-
     setErrors(newErrors);
-
     return !Object.values(newErrors).some(Boolean);
   };
 
   const saveSession = async (data: ShiftSession) => {
-    if (!validateForm(data)) {
-      return false;
-    }
-
-    if (showDrafts && editingSession) {
+    if (!validateForm(data)) return false;
+    if (showDrafts && editingSession)
       await LocalDB.remove("shifts", editingSession.id!);
-    }
     const payload = {
       shift_date: data.shift_date,
       shift: data.shift,
@@ -206,35 +164,23 @@ const ShiftSessions = () => {
     };
 
     try {
-      let error;
+      let res;
+      if (editingSession && !showDrafts)
+        res = await shiftService.update(editingSession.id!, payload);
+      else res = await shiftService.create(payload);
 
-      if (editingSession && !showDrafts) {
-        const res = await shiftService.update(editingSession.id!, payload);
-
-        error = res.error;
-      } else {
-        const res = await shiftService.create(payload);
-
-        error = res.error;
-      }
-
-      if (error) {
-        toast.error(error.message);
+      if (res.error) {
+        toast.error(res.error.message);
         return false;
       }
-
       toast.success(
         `Shift session ${editingSession ? "updated" : "created"} successfully`,
       );
-
       setEditingSession(null);
-
       fetchSessions(true);
-
       return true;
     } catch (err: unknown) {
       toast.error(`${err || "Save failed"}`);
-
       return false;
     }
   };
@@ -247,14 +193,11 @@ const ShiftSessions = () => {
       confirmVariant: "danger",
       onConfirm: async () => {
         const { error } = await shiftService.delete(id);
-
         if (error) {
           toast.error(error.message);
           return;
         }
-
         toast.success("Shift session deleted");
-
         fetchSessions();
       },
     });
@@ -265,22 +208,18 @@ const ShiftSessions = () => {
       typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
         : Math.random().toString(36).substring(2) + Date.now().toString(36);
-
     const draft = {
       ...shift,
       id,
       created_at: new Date().toISOString(),
     };
-
     await LocalDB.create("shifts", draft);
-
     toast.success("Saved as draft");
   };
 
   const getAllDrafts = async () => {
     setShowDrafts(true);
     const drafts = await LocalDB.getAll("shifts");
-
     setSessions(drafts || []);
   };
 
@@ -292,9 +231,7 @@ const ShiftSessions = () => {
       confirmVariant: "danger",
       onConfirm: async () => {
         await LocalDB.remove("shifts", id);
-
         toast.success("Draft deleted");
-
         setShowDrafts(false);
         fetchSessions();
       },
@@ -306,14 +243,11 @@ const ShiftSessions = () => {
       const shiftMatch =
         appliedFilters.shift === "all" ||
         session.shift === appliedFilters.shift;
-
       const startDateMatch =
         !appliedFilters.startDate ||
         session.shift_date >= appliedFilters.startDate;
-
       const endDateMatch =
         !appliedFilters.endDate || session.shift_date <= appliedFilters.endDate;
-
       const distanceMatch =
         (!appliedFilters.minDistance ||
           Number(session.total_distance || 0) >=
@@ -321,7 +255,6 @@ const ShiftSessions = () => {
         (!appliedFilters.maxDistance ||
           Number(session.total_distance || 0) <=
             Number(appliedFilters.maxDistance));
-
       return shiftMatch && startDateMatch && endDateMatch && distanceMatch;
     });
   }, [sessions, appliedFilters]);
@@ -341,14 +274,11 @@ const ShiftSessions = () => {
     const result = filteredSessions.reduce(
       (acc, session) => {
         acc.totalShifts += 1;
-
         acc.totalDistance += Number(session.total_distance || 0);
-
         acc.totalHours += calculateHours(
           session.shift_start_time,
           session.shift_end_time,
         );
-
         return acc;
       },
       {
@@ -358,13 +288,10 @@ const ShiftSessions = () => {
         totalHours: 0,
       },
     );
-
     result.averageSpeed =
       result.totalShifts > 0 ? result.totalDistance / result.totalHours : 0;
-
-    if (isNaN(result.averageSpeed) || !isFinite(result.averageSpeed)) {
+    if (isNaN(result.averageSpeed) || !isFinite(result.averageSpeed))
       result.averageSpeed = 0;
-    }
     return result;
   }, [filteredSessions]);
   return (
@@ -373,10 +300,8 @@ const ShiftSessions = () => {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold">Shift Summary</h2>
-
             <p className="text-sm text-gray-500">Shift sessions overview</p>
           </div>
-
           <div className="flex gap-2">
             <GenericFilters
               title="Shift Filters"
@@ -385,7 +310,6 @@ const ShiftSessions = () => {
               initialFilters={initialFilters}
               config={shiftFilterConfig}
             />
-
             <GenericFormModal
               config={shiftFormConfig}
               title={
@@ -406,7 +330,6 @@ const ShiftSessions = () => {
             />
           </div>
         </div>
-
         <SummaryCardsGrid
           loading={loading}
           config={shiftSummaryConfig}
@@ -414,7 +337,6 @@ const ShiftSessions = () => {
           cols={4}
         />
       </div>
-
       <List
         header="Shift History"
         items={filteredSessions}
@@ -437,34 +359,27 @@ const ShiftSessions = () => {
                 <h3 className="text-xl font-bold capitalize text-gray-900">
                   {session.shift}
                 </h3>
-
                 <p className="mt-1 text-sm text-gray-500">
                   {formatTime12Hour(session.shift_start_time)} -{" "}
                   {formatTime12Hour(session.shift_end_time)}
                 </p>
               </div>
-
               <div className="text-right">
                 <p className="text-xl font-bold text-emerald-600">
                   {Number(session.total_distance || 0).toFixed(2)} KM
                 </p>
-
                 <p className="text-xs text-gray-400">Distance</p>
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-3 text-sm">
               <div>
                 <p className="text-xs text-gray-400">Date</p>
-
                 <p className="font-medium text-gray-700">
                   {formatDate(session.shift_date)}
                 </p>
               </div>
-
               <div>
                 <p className="text-xs text-gray-400">Timing</p>
-
                 <p className="font-medium capitalize text-gray-700">
                   {getTimeDifference(
                     session.shift_start_time,
@@ -472,30 +387,24 @@ const ShiftSessions = () => {
                   ) || "--"}
                 </p>
               </div>
-
               <div>
                 <p className="text-xs text-gray-400">Rides</p>
-
                 <p className="font-medium text-gray-700">
                   {session.rides_count || 0}
                 </p>
               </div>
-
               <div>
                 <p className="text-xs text-gray-400">Average Speed</p>
-
                 <p className="font-medium text-gray-700">
                   {Number(session.average_speed || 0).toFixed(2)} KM/h
                 </p>
               </div>
             </div>
-
             <div className="flex items-center justify-between gap-3">
               <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
                 {Number(session.start_km || 0).toFixed(2)} →&nbsp;
                 {Number(session.end_km || 0).toFixed(2)} KM
               </span>
-
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setEditingSession(session)}
@@ -503,7 +412,6 @@ const ShiftSessions = () => {
                 >
                   Edit
                 </button>
-
                 <button
                   onClick={() => {
                     if (showDrafts) {
@@ -518,7 +426,6 @@ const ShiftSessions = () => {
                 </button>
               </div>
             </div>
-
             {session.remarks && (
               <div className="border-t border-gray-100 pt-3">
                 <p className="text-sm leading-relaxed text-gray-600">

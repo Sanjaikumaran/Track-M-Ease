@@ -37,7 +37,6 @@ const List = <T extends object>({
         <div className=" shadow-sm flex justify-between">
           <div className=" px-4 py-3">
             <h2 className="text-lg font-semibold">{header}</h2>
-
             <p className="text-sm text-gray-500">
               {items.length} entries found
             </p>
@@ -59,19 +58,16 @@ const List = <T extends object>({
             </div>
           )}
         </div>
-
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-3">
             {loading && (
               <div className="rounded-lg border bg-gray-50 p-4">Loading...</div>
             )}
-
             {!loading && items.length === 0 && (
               <div className="rounded-lg border bg-gray-50 p-4 text-gray-500">
                 No entries found
               </div>
             )}
-
             {!loading && children}
           </div>
         </div>

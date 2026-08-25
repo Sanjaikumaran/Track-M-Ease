@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Filter, X } from "lucide-react";
-
 import Button from "./ui/button";
 import Input from "./ui/input";
 import Select from "./ui/select";
@@ -34,13 +33,9 @@ type FilterFieldConfig = InputFieldType | SelectFieldType | ToggleFieldType;
 
 type GenericFiltersProps<T extends object> = {
   title?: string;
-
   filters: T;
-
   setFilters: React.Dispatch<React.SetStateAction<T>>;
-
   initialFilters: T;
-
   config: FilterFieldConfig[];
   onClose?: () => void;
   onChange?: (data: T) => void;
@@ -67,19 +62,14 @@ const GenericFilters = <T extends object>({
     onChange?.({ ...draftFilters, [key]: value } as T);
   };
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-      setShowFilters(false);
-    }
-  };
+  const handleClickOutside = (e: MouseEvent) =>
+    filterRef.current &&
+    !filterRef.current.contains(e.target as Node) &&
+    setShowFilters(false);
 
   useEffect(() => {
-    if (showFilters) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (showFilters) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showFilters]);
 
   return (
@@ -88,10 +78,7 @@ const GenericFilters = <T extends object>({
         variant="outline"
         leftIcon={<Filter size={16} />}
         onClick={() => {
-          if (!showFilters) {
-            setDraftFilters(filters);
-          }
-
+          if (!showFilters) setDraftFilters(filters);
           setShowFilters((prev) => !prev);
         }}
       >
@@ -105,7 +92,6 @@ const GenericFilters = <T extends object>({
         >
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">{title}</h3>
-
             <button
               onClick={() => {
                 onClose?.();
@@ -119,7 +105,6 @@ const GenericFilters = <T extends object>({
           <div className="grid grid-cols-2 gap-3">
             {config.map((field) => {
               const value = draftFilters[field.key as keyof T];
-
               switch (field.type) {
                 case "toggle":
                   return (
@@ -167,7 +152,6 @@ const GenericFilters = <T extends object>({
                       />
                     </div>
                   );
-
                 default:
                   return (
                     <div
@@ -208,11 +192,9 @@ const GenericFilters = <T extends object>({
             >
               Reset
             </Button>
-
             <Button
               onClick={() => {
                 setFilters(draftFilters);
-
                 setShowFilters(false);
               }}
             >

@@ -3,13 +3,10 @@ import { DeleteConfirmationContext } from "./context";
 
 const useDeleteConfirmation = () => {
   const ctx = useContext(DeleteConfirmationContext);
-
-  if (!ctx) {
+  if (!ctx)
     throw new Error(
       "useDeleteConfirmation must be used within DeleteConfirmationProvider",
     );
-  }
-
   return ctx;
 };
 

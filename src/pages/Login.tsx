@@ -11,7 +11,6 @@ type AuthMode = "login" | "signup";
 
 const Login = () => {
   const toast = useToast();
-
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,10 +21,8 @@ const Login = () => {
 
   useEffect(() => {
     const hash = window.location.hash;
-
-    if (hash.includes("access_token") && hash.includes("type=signup")) {
+    if (hash.includes("access_token") && hash.includes("type=signup"))
       toast.success("Email verified successfully. You can now login.");
-    }
   }, [toast]);
 
   const handleSignup = async () => {
@@ -33,29 +30,23 @@ const Login = () => {
       toast.error("Email and password are required");
       return;
     }
-
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
-
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
-
     if (!displayName.trim()) {
       toast.error("Display name is required");
       return;
     }
-
     if (!phone.trim()) {
       toast.error("Phone number is required");
       return;
     }
-
     setLoading(true);
-
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -67,20 +58,15 @@ const Login = () => {
         },
       },
     });
-
     setLoading(false);
-
     if (error) {
       toast.error(error.message);
       return;
     }
-
     toast.success(
       "Signup successful. Please verify your email before logging in.",
     );
-
     setMode("login");
-
     setPassword("");
     setConfirmPassword("");
   };
@@ -90,21 +76,16 @@ const Login = () => {
       toast.error("Email and password are required");
       return;
     }
-
     setLoading(true);
-
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
     setLoading(false);
-
     if (error) {
       toast.error(error.message);
       return;
     }
-
     toast.success("Login successful");
   };
 
@@ -113,20 +94,15 @@ const Login = () => {
       toast.error("Enter your email first");
       return;
     }
-
     setLoading(true);
-
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
-
     setLoading(false);
-
     if (error) {
       toast.error(error.message);
       return;
     }
-
     toast.success("Password reset email sent");
   };
 
@@ -140,9 +116,7 @@ const Login = () => {
               <Receipt size={30} />
             </div>
           </div>
-
           <h1 className="text-center text-2xl font-bold">Track M Ease</h1>
-
           <p className="mt-1 text-center text-xs text-gray-300">
             Track rides, fuel, shifts and transactions easily
           </p>
@@ -157,7 +131,6 @@ const Login = () => {
             >
               Login
             </button>
-
             <button
               onClick={() => setMode("signup")}
               className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition hover:cursor-pointer ${
@@ -167,7 +140,6 @@ const Login = () => {
               Signup
             </button>
           </div>
-
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
             <div className="space-y-4">
               {mode === "signup" && (
@@ -176,7 +148,6 @@ const Login = () => {
                     <label className="mb-1.5 block text-sm font-medium text-gray-700">
                       Display Name
                     </label>
-
                     <input
                       type="text"
                       placeholder="Enter your display name"
@@ -185,12 +156,10 @@ const Login = () => {
                       className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
                     />
                   </div>
-
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-gray-700">
                       Phone Number
                     </label>
-
                     <input
                       type="tel"
                       placeholder="Enter your phone number"
@@ -201,12 +170,10 @@ const Login = () => {
                   </div>
                 </>
               )}
-
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   Email
                 </label>
-
                 <input
                   type="email"
                   placeholder="Enter your email"
@@ -215,12 +182,10 @@ const Login = () => {
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
                 />
               </div>
-
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   Password
                 </label>
-
                 <input
                   type="password"
                   placeholder="Enter your password"
@@ -229,13 +194,11 @@ const Login = () => {
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10"
                 />
               </div>
-
               {mode === "signup" && (
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-gray-700">
                     Confirm Password
                   </label>
-
                   <input
                     type="password"
                     placeholder="Confirm your password"
@@ -245,7 +208,6 @@ const Login = () => {
                   />
                 </div>
               )}
-
               {mode === "signup" && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
                   <div className="flex items-start gap-3">
@@ -253,12 +215,10 @@ const Login = () => {
                       size={20}
                       className="mt-0.5 shrink-0 text-amber-600"
                     />
-
                     <div>
                       <p className="text-sm font-semibold text-amber-700">
                         Email Verification Required
                       </p>
-
                       <p className="mt-1 text-xs leading-relaxed text-amber-600">
                         After signup, a verification email will be sent to your
                         inbox.
@@ -269,7 +229,6 @@ const Login = () => {
               )}
             </div>
           </div>
-
           <div className="mt-5 shrink-0 space-y-3 border-t border-gray-100 pt-4">
             <Button
               onClick={mode === "login" ? handleLogin : handleSignup}
@@ -283,7 +242,6 @@ const Login = () => {
                   ? "Login"
                   : "Create Account"}
             </Button>
-
             {mode === "login" && (
               <button
                 onClick={handleForgotPassword}
@@ -292,10 +250,8 @@ const Login = () => {
                 Forgot Password?
               </button>
             )}
-
             <div className="flex items-center justify-center gap-2 pt-2 text-xs text-gray-400">
               <ShieldCheck size={14} />
-
               <span>Secure authentication powered by Supabase</span>
             </div>
           </div>

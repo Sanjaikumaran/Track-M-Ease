@@ -11,23 +11,17 @@ type Config = {
   officeLng: number;
   radius: number;
   snoozeUntil: number;
-
   startTime: string;
   workHours: number;
-
   enabledDays: string[];
-
   rules: Rule[];
 };
 
 type Store = {
   config: Config;
-
   loading: boolean;
   hydrated: boolean;
-
   updateConfig: (c: Partial<Config>) => void;
-
   hydrateConfig: () => Promise<void>;
   saveConfig: () => Promise<void>;
 };
@@ -39,9 +33,7 @@ const defaultConfig: Config = {
   snoozeUntil: 20,
   startTime: "07:00",
   workHours: 9,
-
   enabledDays: ["mon", "tue", "wed", "thu", "fri"],
-
   rules: [
     { minDistance: 10000, interval: 900 },
     { minDistance: 2000, interval: 60 },
@@ -52,10 +44,8 @@ const defaultConfig: Config = {
 
 const useConfigStore = create<Store>((set, get) => ({
   config: defaultConfig,
-
   loading: false,
   hydrated: false,
-
   updateConfig: (c) =>
     set((state) => ({
       config: {
@@ -66,22 +56,18 @@ const useConfigStore = create<Store>((set, get) => ({
 
   hydrateConfig: async () => {
     set({ loading: true });
-
     try {
       const { data, error } = await supabase.auth.getUser();
       const user = data?.user;
-
       if (!user || error) {
         set({ loading: false, hydrated: true });
         return;
       }
-
       const { data: settings, error: dbError } = await supabase
         .from("user_settings")
         .select("*")
         .eq("user_id", user.id)
         .single();
-
       if (dbError || !settings) {
         set({
           config: defaultConfig,
@@ -90,7 +76,6 @@ const useConfigStore = create<Store>((set, get) => ({
         });
         return;
       }
-
       set({
         config: {
           officeLat: settings.office_lat,
@@ -116,7 +101,6 @@ const useConfigStore = create<Store>((set, get) => ({
 
   saveConfig: async () => {
     const state = get();
-
     const { data: user } = await supabase.auth.getUser();
     if (!user?.user) return;
     await supabase.from("user_settings").upsert(

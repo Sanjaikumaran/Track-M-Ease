@@ -4,85 +4,46 @@ const getTimeDifference = (
   start: string | undefined,
   end: string | undefined,
 ) => {
-  if (!start || !end) {
-    return "";
-  }
-
+  if (!start || !end) return "";
   const startDate = new Date(`2000-01-01T${start}`);
   const endDate = new Date(`2000-01-01T${end}`);
-
   let diffMs = endDate.getTime() - startDate.getTime();
-
-  if (diffMs < 0) {
-    diffMs += 24 * 60 * 60 * 1000;
-  }
-
+  if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
   const totalMinutes = Math.floor(diffMs / (1000 * 60));
-
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-
-  if (hours && minutes) {
-    return `${hours}h ${minutes}m`;
-  }
-
-  if (hours) {
-    return `${hours}h`;
-  }
-
+  if (hours && minutes) return `${hours}h ${minutes}m`;
+  if (hours) return `${hours}h`;
   return `${minutes}m`;
 };
 
-const currentHour = new Date().getHours();
-
 const getShiftByTime = () => {
-  if (currentHour >= 5 && currentHour < 12) {
-    return "morning";
-  }
-
-  if (currentHour >= 12 && currentHour < 17) {
-    return "afternoon";
-  }
-
-  if (currentHour >= 17 && currentHour < 21) {
-    return "evening";
-  }
-
+  const currentHour = new Date().getHours();
+  if (currentHour >= 5 && currentHour < 12) return "morning";
+  if (currentHour >= 12 && currentHour < 17) return "afternoon";
+  if (currentHour >= 17 && currentHour < 21) return "evening";
   return "night";
 };
 
 const calculateHours = (start?: string, end?: string) => {
-  if (!start?.trim() || !end?.trim()) {
-    return 0;
-  }
-
+  if (!start?.trim() || !end?.trim()) return 0;
   const startDate = new Date(`2000-01-01T${start}`);
   const endDate = new Date(`2000-01-01T${end}`);
-
   const diff = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
-
   return diff > 0 ? diff : 0;
 };
 
 const formatDate = (date?: string | Date) => {
-  if (!date) {
-    return "--";
-  }
-
+  if (!date) return "--";
   const parsedDate = new Date(date);
-
   const day = String(parsedDate.getDate()).padStart(2, "0");
   const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
   const year = parsedDate.getFullYear();
-
   return `${day}-${month}-${year}`;
 };
 
 const formatTime12Hour = (time?: string) => {
-  if (!time) {
-    return "--";
-  }
-
+  if (!time) return "--";
   return new Date(`2000-01-01T${time}`).toLocaleTimeString("en-IN", {
     hour: "numeric",
     minute: "2-digit",
@@ -98,51 +59,34 @@ const getDistanceMeters = (
 ) => {
   const R = 6371e3;
   const toRad = (x: number) => (x * Math.PI) / 180;
-
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
   return R * c;
 };
 
 const getInterval = (distance: number, rules: Rule[]) => {
   const sorted = [...rules].sort((a, b) => a.minDistance - b.minDistance);
-  for (const rule of sorted) {
-    if (distance <= rule.minDistance) {
-      return rule.interval;
-    }
-  }
-
+  for (const rule of sorted)
+    if (distance <= rule.minDistance) return rule.interval;
   return 30;
 };
 
-const getAttendanceState = (distance: number, radius: number) => {
-  return distance <= radius ? "inside" : "outside";
-};
+const getAttendanceState = (distance: number, radius: number) =>
+  distance <= radius ? "inside" : "outside";
 
 const requestNotificationPermission = async () => {
   if (!("Notification" in window)) return false;
-
-  if (Notification.permission === "granted") {
-    return true;
-  }
-
+  if (Notification.permission === "granted") return true;
   const permission = await Notification.requestPermission();
-
   return permission === "granted";
 };
 
 const sendNotification = async (title: string, body: string) => {
-  if (Notification.permission !== "granted") {
-    return;
-  }
-
+  if (Notification.permission !== "granted") return;
   new Notification(title, {
     body,
     icon: "/icon-192.png",
@@ -158,21 +102,15 @@ type ExtendedNotificationOptions = NotificationOptions & {
   }[];
   vibrate?: number[];
 };
+
 const sendNotificationWorker = async (title: string, body: string) => {
-  if (!("Notification" in window)) {
-    return;
-  }
+  if (!("Notification" in window)) return;
   if (Notification.permission !== "granted") {
     const permission = await Notification.requestPermission();
-
-    if (permission !== "granted") {
-      return;
-    }
+    if (permission !== "granted") return;
   }
-
   try {
     const registration = await navigator.serviceWorker.ready;
-
     await registration.showNotification(title, {
       body,
       icon: "/favicon.svg",

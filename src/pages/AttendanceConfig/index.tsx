@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-
 import { useToast } from "../../context/toast";
 import { useConfigStore } from "../../store/useConfigStore";
-
 import Input from "../../components/ui/input";
 import Button from "../../components/ui/button";
 
@@ -30,18 +28,14 @@ const Settings = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
   const { config, updateConfig, saveConfig } = useConfigStore();
-
   const [errors, setErrors] = useState<ErrorState>({
     office: {},
     work: {},
     rules: {},
   });
-
   const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
   const toggleDay = (day: string) => {
     const exists = config.enabledDays.includes(day);
-
     updateConfig({
       enabledDays: exists
         ? config.enabledDays.filter((d) => d !== day)
@@ -51,7 +45,6 @@ const Settings = () => {
 
   const useCurrentLocation = async () => {
     setLoading(true);
-
     try {
       const position = await new Promise<GeolocationPosition>(
         (resolve, reject) => {
@@ -60,12 +53,10 @@ const Settings = () => {
           });
         },
       );
-
       updateConfig({
         officeLat: position.coords.latitude,
         officeLng: position.coords.longitude,
       });
-
       toast.success("Location updated");
     } catch (error) {
       console.error(error);
@@ -83,12 +74,10 @@ const Settings = () => {
 
   const updateRule = (index: number, key: keyof Rule, value: number) => {
     const copy = [...config.rules];
-
     copy[index] = {
       ...copy[index],
       [key]: value,
     };
-
     updateConfig({
       rules: copy,
     });
@@ -106,67 +95,45 @@ const Settings = () => {
       work: {},
       rules: {},
     };
-
     if (
       Number.isNaN(config.officeLat) ||
       config.officeLat < -90 ||
       config.officeLat > 90
-    ) {
+    )
       err.office.lat = "Latitude must be between -90 and 90";
-    }
-
     if (
       Number.isNaN(config.officeLng) ||
       config.officeLng < -180 ||
       config.officeLng > 180
-    ) {
+    )
       err.office.lng = "Longitude must be between -180 and 180";
-    }
-
-    if (config.radius <= 0) {
-      err.office.radius = "Radius must be greater than 0";
-    }
-
-    if (!config.startTime) {
-      err.work.startTime = "Start time is required";
-    }
-
-    if (config.workHours < 1 || config.workHours > 24) {
+    if (config.radius <= 0) err.office.radius = "Radius must be greater than 0";
+    if (!config.startTime) err.work.startTime = "Start time is required";
+    if (config.workHours < 1 || config.workHours > 24)
       err.work.hours = "Work hours must be between 1 and 24";
-    }
-
-    if (config.enabledDays.length === 0) {
+    if (config.enabledDays.length === 0)
       toast.error("Select at least one working day");
-    }
-
     const seenDistances = new Set<number>();
-
     config.rules.forEach((rule, index) => {
       if (rule.minDistance <= 0) {
         err.rules[index] = "Distance must be greater than 0";
         return;
       }
-
       if (rule.interval <= 0) {
         err.rules[index] = "Interval must be greater than 0";
         return;
       }
-
       if (seenDistances.has(rule.minDistance)) {
         err.rules[index] = "Duplicate distance rule";
         return;
       }
-
       seenDistances.add(rule.minDistance);
     });
-
     setErrors(err);
-
     const hasError =
       Object.keys(err.office).length > 0 ||
       Object.keys(err.work).length > 0 ||
       Object.keys(err.rules).length > 0;
-
     return !hasError;
   };
 
@@ -176,10 +143,8 @@ const Settings = () => {
       return;
     }
     setLoading(true);
-
     try {
       await saveConfig();
-
       toast.success("Settings saved successfully!");
     } catch (error) {
       console.error(error);
@@ -215,11 +180,9 @@ const Settings = () => {
             </Button>
           </div>
         </div>
-
         <div className="bg-white p-4 rounded-xl shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-lg">Office Settings</h2>
-
             {editMode && (
               <Button
                 variant="link"
@@ -231,7 +194,6 @@ const Settings = () => {
               </Button>
             )}
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Input
               label="Latitude"
@@ -259,7 +221,6 @@ const Settings = () => {
               readOnly={!editMode}
             />
           </div>
-
           <Input
             type="number"
             min={0}
@@ -275,10 +236,8 @@ const Settings = () => {
             readOnly={!editMode}
           />
         </div>
-
         <div className="bg-white p-4 rounded-xl shadow-sm space-y-3">
           <h2 className="font-semibold text-lg">Work Settings</h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Input
               type="time"
@@ -293,7 +252,6 @@ const Settings = () => {
               disabled={!editMode}
               readOnly={!editMode}
             />
-
             <Input
               type="number"
               min={0}
@@ -327,7 +285,6 @@ const Settings = () => {
 
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <h2 className="font-semibold text-lg">Working Days</h2>
-
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
             {days.map((day) => (
               <label
@@ -343,7 +300,6 @@ const Settings = () => {
                     readOnly={!editMode}
                   />
                 )}
-
                 <span
                   className={`text-sm font-medium uppercase ${!editMode && !config.enabledDays.includes(day) ? "text-red-500" : ""}`}
                 >
@@ -357,14 +313,12 @@ const Settings = () => {
         <div className="bg-white p-4 rounded-xl shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-lg">Distance Rules</h2>
-
             {editMode && (
               <Button onClick={addRule} variant="secondary">
                 + Add Rule
               </Button>
             )}
           </div>
-
           <div className="space-y-3">
             {config.rules.map((rule, index) => (
               <div
@@ -384,7 +338,6 @@ const Settings = () => {
                     disabled={!editMode}
                     readOnly={!editMode}
                   />
-
                   <Input
                     type="number"
                     min={0}
@@ -398,12 +351,10 @@ const Settings = () => {
                     readOnly={!editMode}
                   />
                 </div>
-
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-400">
                     Rule #{index + 1}
                   </span>
-
                   {editMode && (
                     <button
                       type="button"
@@ -416,7 +367,6 @@ const Settings = () => {
                     </button>
                   )}
                 </div>
-
                 {errors.rules[index] && (
                   <p className="text-xs text-red-500">{errors.rules[index]}</p>
                 )}

@@ -107,7 +107,6 @@ const shiftSummaryConfig: SummaryCardConfig[] = [
     formatter: (value: number | string) => `${Number(value).toFixed(2)} KM/h`,
     color: "orange",
   },
-
   {
     label: "Total Hours",
     key: "totalHours",
