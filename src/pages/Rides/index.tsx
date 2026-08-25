@@ -9,6 +9,7 @@ import SummaryCardsGrid from "../../components/summaryCard";
 import List from "../../components/list";
 import { rideFilterConfig, rideFormConfig, rideSummaryConfig } from "./config";
 import { formatDate, formatTime12Hour } from "../../lib/helpers";
+import type { Bikes } from "../Bikes";
 
 interface RideEntry {
   id?: string;
@@ -32,6 +33,8 @@ interface RideEntry {
   ride_start_time?: string;
   ride_end_time?: string;
   last_updated_at?: string;
+  bike_id?: string | null;
+  bike?: Bikes | null;
 }
 
 type FilterState = {
@@ -45,6 +48,7 @@ type FilterState = {
   maxNetProfit: string;
   minDistance: string;
   maxDistance: string;
+  bike_id: string | null;
 };
 
 const initialForm: RideEntry = {
@@ -71,6 +75,7 @@ const initialFilters: FilterState = {
   maxNetProfit: "",
   minDistance: "",
   maxDistance: "",
+  bike_id: null,
 };
 
 const initialErrors = {
@@ -87,12 +92,14 @@ const initialErrors = {
 };
 
 const rideService = new SupabaseService<RideEntry>("ride_entries");
+const bikeService = new SupabaseService<Bikes>("bikes");
 
 const Rides = () => {
   const toast = useToast();
   const { confirmDelete } = useDeleteConfirmation();
   const fetchedRef = useRef(false);
   const [rides, setRides] = useState<RideEntry[]>([]);
+  const [bikes, setBikes] = useState<Bikes[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingRide, setEditingRide] = useState<RideEntry | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>(initialErrors);
@@ -104,6 +111,13 @@ const Rides = () => {
     setLoading(true);
     setShowDrafts(false);
     try {
+      const { data: bikesData, error: bikesError } =
+        await bikeService.getAll(refresh);
+      if (bikesError) {
+        toast.error(bikesError.message);
+        return;
+      }
+      setBikes(bikesData || []);
       const { data, error } = await rideService.getAll(
         refresh,
         ["ride_date", "ride_start_time"],
@@ -115,7 +129,11 @@ const Rides = () => {
         toast.error(error.message);
         return;
       }
-      setRides(data || []);
+      const fullData = (data || []).map((ride) => ({
+        ...ride,
+        bike: bikesData.find((b) => b.id === ride.bike_id) || null,
+      }));
+      setRides(fullData);
     } catch (err: unknown) {
       toast.error(`${err || "Failed to fetch ride entries"}`);
     } finally {
@@ -140,6 +158,7 @@ const Rides = () => {
       start_km: "",
       end_km: "",
       ride_start_time: "",
+      bike_id: "",
       ride_end_time: "",
       remarks: "",
     };
@@ -177,6 +196,7 @@ const Rides = () => {
       currentIndex >= 0 ? rides[currentIndex + 1] : rides[0];
 
     if (
+      data.bike_id === previousSession?.bike_id &&
       !editingRide &&
       data.ride_date === previousSession.ride_date &&
       previousSession?.ride_end_time &&
@@ -219,6 +239,7 @@ const Rides = () => {
       extra_amount: data.extra_amount,
       start_km: data.start_km,
       end_km: data.end_km,
+      bike_id: data.bike_id,
       ride_start_time: data.ride_start_time,
       ride_end_time: data.ride_end_time,
       remarks: data.remarks,
@@ -330,7 +351,8 @@ const Rides = () => {
           Number(ride.distance || 0) >= Number(appliedFilters.minDistance)) &&
         (!appliedFilters.maxDistance ||
           Number(ride.distance || 0) <= Number(appliedFilters.maxDistance));
-
+      const bike =
+        !appliedFilters.bike_id || ride.bike_id === appliedFilters.bike_id;
       return (
         rideTypeMatch &&
         shiftMatch &&
@@ -338,7 +360,8 @@ const Rides = () => {
         endDateMatch &&
         earningMatch &&
         netProfitMatch &&
-        distanceMatch
+        distanceMatch &&
+        bike
       );
     });
   }, [rides, appliedFilters]);
@@ -366,6 +389,43 @@ const Rides = () => {
     );
   }, [filteredRides]);
 
+  const filterOptions = useMemo(() => {
+    return rideFilterConfig.map((field) => {
+      if (field.key === "bike_id") {
+        return {
+          ...field,
+          options: [
+            {
+              value: "",
+              label: "All Bikes",
+            },
+            ...bikes.map((bike) => ({
+              value: bike.id || "",
+              label: `${bike.brand} ${bike.model} (${bike.bike_number?.slice(-4)})`,
+            })),
+          ],
+        };
+      }
+      return field;
+    });
+  }, [bikes]);
+
+  const formConfig = useMemo(() => {
+    return rideFormConfig.map((field) => {
+      if (field.key === "bike_id" && field.type === "select") {
+        return {
+          ...field,
+          options: bikes.map((bike) => ({
+            value: bike.id || "",
+            label: `${bike.brand} ${bike.model} (${bike.bike_number?.slice(-4)})`,
+          })),
+        };
+      }
+
+      return field;
+    });
+  }, [bikes]);
+
   return (
     <div className="space-y-4 p-4">
       <div className="rounded-lg bg-white p-4 shadow">
@@ -380,10 +440,10 @@ const Rides = () => {
               filters={appliedFilters}
               setFilters={setAppliedFilters}
               initialFilters={initialFilters}
-              config={rideFilterConfig}
+              config={filterOptions}
             />
             <GenericFormModal
-              config={rideFormConfig}
+              config={formConfig}
               title={
                 editingRide && !showDrafts
                   ? "Edit Ride Entry"
@@ -447,7 +507,9 @@ const Rides = () => {
                 <p className="text-xl font-bold text-emerald-600">
                   ₹{Number(ride.net_profit || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-gray-400">Net Profit</p>
+                <p className="text-xs text-gray-400">
+                  Distance: {Number(ride.distance || 0).toFixed(2)} KM
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-3 text-sm">
@@ -458,9 +520,9 @@ const Rides = () => {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Distance</p>
-                <p className="font-medium text-gray-700">
-                  {Number(ride.distance || 0).toFixed(2)} KM
+                <p className="text-xs text-gray-400">Bike</p>
+                <p className="font-medium text-emerald-600">
+                  {`${ride.bike?.brand} ${ride.bike?.model} (${ride.bike?.bike_number?.slice(-4)})`}
                 </p>
               </div>
               <div>

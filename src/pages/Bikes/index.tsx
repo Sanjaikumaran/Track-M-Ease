@@ -5,7 +5,7 @@ import GenericFormModal from "../../components/form";
 import { bikeFormConfig } from "./config";
 import { formatDate } from "../../lib/helpers";
 
-interface Bikes {
+export interface Bikes {
   id?: string;
   created_at?: string;
   brand: string;

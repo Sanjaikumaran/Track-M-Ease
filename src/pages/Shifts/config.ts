@@ -41,6 +41,7 @@ const shiftFormConfig: FormFieldConfig[] = [
     label: "End Time",
     type: "time",
   },
+  { key: "bike_id", label: "Bike", type: "select", colSpan: 2, options: [] },
   {
     key: "remarks",
     label: "Remarks",
@@ -83,6 +84,7 @@ const shiftFilterConfig: FilterFieldConfig[] = [
     label: "Max Distance",
     type: "number",
   },
+  { key: "bike_id", label: "Bike", type: "select", colSpan: 2, options: [] },
 ];
 
 const shiftSummaryConfig: SummaryCardConfig[] = [

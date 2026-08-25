@@ -27,6 +27,13 @@ const fuelFilterConfig: FilterFieldConfig[] = [
     placeholder: "1000",
   },
   {
+    key: "bike_id",
+    label: "Bike",
+    type: "select",
+    options: [],
+    colSpan: 2,
+  },
+  {
     key: "fullTankOnly",
     label: "Full Tank",
     type: "toggle",
@@ -68,6 +75,13 @@ const fuelFormConfig: FormFieldConfig[] = [
     type: "toggle",
     activeText: "Full Tank",
     inactiveText: "Partial Tank",
+  },
+  {
+    key: "bike_id",
+    label: "Bike",
+    type: "select",
+    colSpan: 2,
+    options: [],
   },
   {
     key: "remarks",

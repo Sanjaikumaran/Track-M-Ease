@@ -9,6 +9,7 @@ import SummaryCardsGrid from "../../components/summaryCard";
 import List from "../../components/list";
 import { fuelFilterConfig, fuelFormConfig, fuelSummaryConfig } from "./config";
 import { formatDate, formatTime12Hour } from "../../lib/helpers";
+import type { Bikes } from "../Bikes";
 
 type FuelEntry = {
   id?: string;
@@ -24,6 +25,8 @@ type FuelEntry = {
   last_updated_at?: string | null;
   travelled_km?: number | null;
   mileage_per_litre?: number | null;
+  bike?: Bikes | null;
+  bike_id?: string | null;
 };
 
 type FilterState = {
@@ -32,6 +35,7 @@ type FilterState = {
   minAmount: string;
   maxAmount: string;
   fullTankOnly: boolean;
+  bike_id: string | null;
 };
 
 const initialForm: FuelEntry = {
@@ -50,6 +54,7 @@ const initialFilters: FilterState = {
   minAmount: "",
   maxAmount: "",
   fullTankOnly: false,
+  bike_id: null,
 };
 
 const initialErrors = {
@@ -61,10 +66,12 @@ const initialErrors = {
 };
 
 const fuelService = new SupabaseService<FuelEntry>("fuel_entries");
+const bikeService = new SupabaseService<Bikes>("bikes");
 const FuelPage = () => {
   const toast = useToast();
   const { confirmDelete } = useDeleteConfirmation();
   const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>([]);
+  const [bikes, setBikes] = useState<Bikes[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [editingFuel, setEditingFuel] = useState<FuelEntry | null>(null);
   const [appliedFilters, setAppliedFilters] =
@@ -72,10 +79,18 @@ const FuelPage = () => {
   const [showDrafts, setShowDrafts] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>(initialErrors);
   const fetchedRef = useRef<boolean>(false);
+
   const fetchFuels = async (refresh: boolean = false) => {
     setLoading(true);
     setShowDrafts(false);
     try {
+      const { data: bikesData, error: bikesError } =
+        await bikeService.getAll(refresh);
+      if (bikesError) {
+        toast.error(bikesError.message);
+        return;
+      }
+      setBikes(bikesData || []);
       const { data, error } = await fuelService.getAll(
         refresh,
         ["fuel_date", "fuel_time"],
@@ -104,6 +119,7 @@ const FuelPage = () => {
           prev.litres > 0 ? travelled / Number(entry.litres) : null;
         return {
           ...entry,
+          bike: bikesData.find((b) => b.id === entry.bike_id) || null,
           travelled_km: travelled > 0 ? travelled : null,
           mileage_per_litre: mileage && mileage > 0 ? mileage : null,
         };
@@ -120,7 +136,10 @@ const FuelPage = () => {
   useEffect(() => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
-    fetchFuels();
+    const loadData = async () => {
+      await fetchFuels();
+    };
+    loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -130,6 +149,7 @@ const FuelPage = () => {
       fuel_time: "",
       litres: "",
       amount: "",
+      bike_id: "",
       odometer_km: "",
     };
     if (!data.fuel_date) err.fuel_date = "Fuel date is required";
@@ -143,6 +163,7 @@ const FuelPage = () => {
     const previousSession =
       currentIndex >= 0 ? fuelEntries[currentIndex + 1] : fuelEntries[0];
     if (
+      data.bike_id === previousSession?.bike_id &&
       previousSession?.odometer_km &&
       Number(data.odometer_km) <= Number(previousSession.odometer_km)
     )
@@ -150,6 +171,7 @@ const FuelPage = () => {
         "KM must be greater than previous entry (" +
         previousSession.odometer_km +
         " KM)";
+    if (!data.bike_id) err.bike_id = "Bike is required";
     setErrors(err);
     return !Object.values(err).some(Boolean);
   };
@@ -164,6 +186,7 @@ const FuelPage = () => {
       litres: data.litres,
       amount: data.amount,
       odometer_km: data.odometer_km,
+      bike_id: data.bike_id,
       is_full_tank: data.is_full_tank,
       remarks: data.remarks,
     };
@@ -253,7 +276,9 @@ const FuelPage = () => {
         (!appliedFilters.maxAmount ||
           fuel.amount <= Number(appliedFilters.maxAmount));
       const fullTank = !appliedFilters.fullTankOnly || fuel.is_full_tank;
-      return start && end && amount && fullTank;
+      const bike =
+        !appliedFilters.bike_id || fuel.bike_id === appliedFilters.bike_id;
+      return start && end && amount && fullTank && bike;
     });
   }, [fuelEntries, appliedFilters]);
 
@@ -280,6 +305,44 @@ const FuelPage = () => {
       ? summary.totalTravelledKm / summary.totalLitres
       : 0;
 
+  const filterOptions = useMemo(() => {
+    return fuelFilterConfig.map((field) => {
+      if (field.key === "bike_id") {
+        return {
+          ...field,
+          options: [
+            {
+              value: "",
+              label: "All Bikes",
+            },
+            ...bikes.map((bike) => ({
+              value: bike.id || "",
+              label: `${bike.brand} ${bike.model} (${bike.bike_number?.slice(-4)})`,
+            })),
+          ],
+        };
+      }
+
+      return field;
+    });
+  }, [bikes]);
+
+  const formConfig = useMemo(() => {
+    return fuelFormConfig.map((field) => {
+      if (field.key === "bike_id" && field.type === "select") {
+        return {
+          ...field,
+          options: bikes.map((bike) => ({
+            value: bike.id || "",
+            label: `${bike.brand} ${bike.model} (${bike.bike_number?.slice(-4)})`,
+          })),
+        };
+      }
+
+      return field;
+    });
+  }, [bikes]);
+
   return (
     <div className="space-y-4 p-4">
       <div className="rounded-lg bg-white p-4 shadow">
@@ -294,10 +357,10 @@ const FuelPage = () => {
               filters={appliedFilters}
               setFilters={setAppliedFilters}
               initialFilters={initialFilters}
-              config={fuelFilterConfig}
+              config={filterOptions}
             />
             <GenericFormModal
-              config={fuelFormConfig}
+              config={formConfig}
               title={
                 editingFuel && !showDrafts
                   ? "Edit Fuel Entry"
@@ -340,7 +403,6 @@ const FuelPage = () => {
           },
         ]}
       >
-        {" "}
         {filteredFuelEntries.map((fuel) => (
           <div
             key={fuel.id}
@@ -390,7 +452,13 @@ const FuelPage = () => {
                     : "-"}
                 </p>
               </div>
-              <div className="col-span-2">
+              <div>
+                <p className="text-xs text-gray-400">Bike</p>
+                <p className="font-semibold text-emerald-600">
+                  {`${fuel.bike?.brand} ${fuel.bike?.model} (${fuel.bike?.bike_number?.slice(-4)})`}
+                </p>
+              </div>
+              <div>
                 <p className="text-xs text-gray-400">Mileage</p>
                 <p className="font-semibold text-emerald-600">
                   {fuel.mileage_per_litre

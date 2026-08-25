@@ -34,7 +34,6 @@ class SupabaseService<T extends BaseEntity> {
     }
     const fields = selectFields.length > 0 ? selectFields.join(",") : "*";
     let query = supabase.from(this.tableName).select(fields);
-    console.log("Query:", query);
     if (sortBy?.length) {
       sortBy.forEach((field) => {
         query = query.order(field, {

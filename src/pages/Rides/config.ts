@@ -6,7 +6,6 @@ import {
   Wallet,
   HandCoins,
 } from "lucide-react";
-
 import type { SummaryCardConfig } from "../../components/summaryCard";
 import type { FormFieldConfig } from "../../components/form";
 import type { FilterFieldConfig } from "../../components/filter";
@@ -61,6 +60,7 @@ const rideFormConfig: FormFieldConfig[] = [
     label: "Extra Amount",
     type: "number",
   },
+  { key: "bike_id", label: "Bike", type: "select", options: [] },
   {
     key: "remarks",
     label: "Remarks",
@@ -132,6 +132,7 @@ const rideFilterConfig: FilterFieldConfig[] = [
     label: "Max Distance",
     type: "number",
   },
+  { key: "bike_id", label: "Bike", type: "select", colSpan: 2, options: [] },
 ];
 
 const rideSummaryConfig: SummaryCardConfig[] = [
@@ -170,7 +171,6 @@ const rideSummaryConfig: SummaryCardConfig[] = [
     formatter: (value: number | string) => `₹${Number(value).toFixed(2)}`,
     color: "purple",
   },
-
   {
     label: "Total KM",
     key: "totalKm",

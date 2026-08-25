@@ -57,7 +57,7 @@ const Select = ({
               <option
                 key={option.value}
                 value={option.value}
-                className="capitalize hover:cursor-pointer"
+                className="capitalize hover:cursor-pointer "
               >
                 {option.label}
               </option>

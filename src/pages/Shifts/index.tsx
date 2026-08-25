@@ -21,6 +21,7 @@ import {
   getShiftByTime,
   getTimeDifference,
 } from "../../lib/helpers";
+import type { Bikes } from "../Bikes";
 
 interface ShiftSession {
   id?: string;
@@ -35,6 +36,9 @@ interface ShiftSession {
   remarks?: string;
   rides_count?: number;
   user_id?: string;
+  average_speed?: number;
+  bike?: Bikes | null;
+  bike_id?: string | null;
   last_updated_at?: string;
 }
 
@@ -44,6 +48,7 @@ type FilterState = {
   endDate: string;
   minDistance: string;
   maxDistance: string;
+  bike_id: string | null;
 };
 
 const initialForm: ShiftSession = {
@@ -62,6 +67,7 @@ const initialFilters: FilterState = {
   endDate: "",
   minDistance: "",
   maxDistance: "",
+  bike_id: null,
 };
 
 const initialErrors = {
@@ -74,12 +80,14 @@ const initialErrors = {
   remarks: "",
 };
 
+const bikeService = new SupabaseService<Bikes>("bikes");
 const shiftService = new SupabaseService<ShiftSession>("shift_sessions");
 const ShiftSessions = () => {
   const toast = useToast();
   const { confirmDelete } = useDeleteConfirmation();
   const fetchedRef = useRef(false);
   const [sessions, setSessions] = useState<ShiftSession[]>([]);
+  const [bikes, setBikes] = useState<Bikes[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingSession, setEditingSession] = useState<ShiftSession | null>(
     null,
@@ -93,6 +101,13 @@ const ShiftSessions = () => {
     setLoading(true);
     setShowDrafts(false);
     try {
+      const { data: bikesData, error: bikesError } =
+        await bikeService.getAll(refresh);
+      if (bikesError) {
+        toast.error(bikesError.message);
+        return;
+      }
+      setBikes(bikesData || []);
       const { data, error } = await shiftService.getAll(
         refresh,
         ["shift_date", "shift_start_time"],
@@ -102,7 +117,18 @@ const ShiftSessions = () => {
         toast.error(error.message);
         return;
       }
-      setSessions(data || []);
+      const fullData = (data || []).map((session) => ({
+        ...session,
+        bike: bikesData.find((b) => b.id === session.bike_id) || null,
+        average_speed: session.total_distance
+          ? Number(session.total_distance || 0) /
+              calculateHours(
+                session.shift_start_time,
+                session.shift_end_time,
+              ) || 0
+          : 0,
+      }));
+      setSessions(fullData);
     } catch (err: unknown) {
       toast.error(`${err || "Failed to fetch shift sessions"}`);
     } finally {
@@ -114,7 +140,6 @@ const ShiftSessions = () => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
     fetchSessions();
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -124,6 +149,7 @@ const ShiftSessions = () => {
       shift: "",
       start_km: "",
       end_km: "",
+      bike_id: "",
       shift_start_time: "",
       shift_end_time: "",
       remarks: "",
@@ -138,12 +164,17 @@ const ShiftSessions = () => {
       newErrors.end_km = "End KM must be greater than Start KM";
     if (data.remarks && data.remarks.length > 300)
       newErrors.remarks = "Remarks cannot exceed 300 characters";
+    if (!data.bike_id) newErrors.bike_id = "Bike is required";
 
     const currentIndex = sessions.findIndex((s) => s.id === editingSession?.id);
     const previousSession =
       currentIndex >= 0 ? sessions[currentIndex + 1] : sessions[0];
 
-    if (previousSession && Number(data.start_km || 0) < previousSession.end_km!)
+    if (
+      data.bike_id === previousSession?.bike_id &&
+      previousSession &&
+      Number(data.start_km || 0) < previousSession.end_km!
+    )
       newErrors.start_km = `Start KM cannot be less than previous recorded KM (${previousSession.end_km})`;
     setErrors(newErrors);
     return !Object.values(newErrors).some(Boolean);
@@ -161,6 +192,7 @@ const ShiftSessions = () => {
       shift_start_time: data.shift_start_time,
       shift_end_time: data.shift_end_time,
       remarks: data.remarks,
+      bike_id: data.bike_id,
     };
 
     try {
@@ -255,20 +287,13 @@ const ShiftSessions = () => {
         (!appliedFilters.maxDistance ||
           Number(session.total_distance || 0) <=
             Number(appliedFilters.maxDistance));
-      return shiftMatch && startDateMatch && endDateMatch && distanceMatch;
+      const bike =
+        !appliedFilters.bike_id || session.bike_id === appliedFilters.bike_id;
+      return (
+        shiftMatch && startDateMatch && endDateMatch && distanceMatch && bike
+      );
     });
   }, [sessions, appliedFilters]);
-
-  const sessionsWithDistance = useMemo(() => {
-    return filteredSessions.map((session) => ({
-      ...session,
-      average_speed: session.total_distance
-        ? Number(session.total_distance || 0) /
-            calculateHours(session.shift_start_time, session.shift_end_time) ||
-          0
-        : 0,
-    }));
-  }, [filteredSessions]);
 
   const summary = useMemo(() => {
     const result = filteredSessions.reduce(
@@ -294,6 +319,44 @@ const ShiftSessions = () => {
       result.averageSpeed = 0;
     return result;
   }, [filteredSessions]);
+
+  const filterOptions = useMemo(() => {
+    return shiftFilterConfig.map((field) => {
+      if (field.key === "bike_id") {
+        return {
+          ...field,
+          options: [
+            {
+              value: "",
+              label: "All Bikes",
+            },
+            ...bikes.map((bike) => ({
+              value: bike.id || "",
+              label: `${bike.brand} ${bike.model} (${bike.bike_number?.slice(-4)})`,
+            })),
+          ],
+        };
+      }
+      return field;
+    });
+  }, [bikes]);
+
+  const formConfig = useMemo(() => {
+    return shiftFormConfig.map((field) => {
+      if (field.key === "bike_id" && field.type === "select") {
+        return {
+          ...field,
+          options: bikes.map((bike) => ({
+            value: bike.id || "",
+            label: `${bike.brand} ${bike.model} (${bike.bike_number?.slice(-4)})`,
+          })),
+        };
+      }
+
+      return field;
+    });
+  }, [bikes]);
+
   return (
     <div className="space-y-4 p-4">
       <div className="rounded-lg bg-white p-4 shadow">
@@ -308,10 +371,10 @@ const ShiftSessions = () => {
               filters={appliedFilters}
               setFilters={setAppliedFilters}
               initialFilters={initialFilters}
-              config={shiftFilterConfig}
+              config={filterOptions}
             />
             <GenericFormModal
-              config={shiftFormConfig}
+              config={formConfig}
               title={
                 editingSession && !showDrafts
                   ? "Edit Shift Session"
@@ -349,7 +412,7 @@ const ShiftSessions = () => {
           },
         ]}
       >
-        {sessionsWithDistance.map((session) => (
+        {filteredSessions.map((session) => (
           <div
             key={session.id}
             className="space-y-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition hover:shadow-md"
@@ -368,7 +431,13 @@ const ShiftSessions = () => {
                 <p className="text-xl font-bold text-emerald-600">
                   {Number(session.total_distance || 0).toFixed(2)} KM
                 </p>
-                <p className="text-xs text-gray-400">Distance</p>
+                <p className="text-xs text-gray-400">
+                  Timing:{" "}
+                  {getTimeDifference(
+                    session.shift_start_time,
+                    session.shift_end_time,
+                  ) || "--"}
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-3 text-sm">
@@ -379,12 +448,9 @@ const ShiftSessions = () => {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Timing</p>
-                <p className="font-medium capitalize text-gray-700">
-                  {getTimeDifference(
-                    session.shift_start_time,
-                    session.shift_end_time,
-                  ) || "--"}
+                <p className="text-xs text-gray-400">Bike</p>
+                <p className="font-medium capitalize text-emerald-600">
+                  {`${session.bike?.brand} ${session.bike?.model} (${session.bike?.bike_number?.slice(-4)})`}
                 </p>
               </div>
               <div>
