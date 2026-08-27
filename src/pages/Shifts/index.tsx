@@ -165,10 +165,13 @@ const ShiftSessions = () => {
     if (data.remarks && data.remarks.length > 300)
       newErrors.remarks = "Remarks cannot exceed 300 characters";
     if (!data.bike_id) newErrors.bike_id = "Bike is required";
-
     const currentIndex = sessions.findIndex((s) => s.id === editingSession?.id);
     const previousSession =
-      currentIndex >= 0 ? sessions[currentIndex + 1] : sessions[0];
+      currentIndex >= 0
+        ? sessions
+            .slice(currentIndex + 1)
+            .find((s) => s.bike_id === data.bike_id)
+        : sessions.find((s) => s.bike_id === data.bike_id);
 
     if (
       data.bike_id === previousSession?.bike_id &&

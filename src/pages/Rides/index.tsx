@@ -190,36 +190,35 @@ const Rides = () => {
       data.ride_end_time < data.ride_start_time
     )
       newErrors.ride_end_time = "End time must be greater than start time";
-
+    if (!data.bike_id) newErrors.bike_id = "Bike is required";
     const currentIndex = rides.findIndex((s) => s.id === editingRide?.id);
-    const previousSession =
-      currentIndex >= 0 ? rides[currentIndex + 1] : rides[0];
+    const prevRide =
+      currentIndex >= 0
+        ? rides.slice(currentIndex + 1).find((s) => s.bike_id === data.bike_id)
+        : rides.find((s) => s.bike_id === data.bike_id);
 
     if (
-      data.bike_id === previousSession?.bike_id &&
+      data.bike_id === prevRide?.bike_id &&
       !editingRide &&
-      data.ride_date === previousSession.ride_date &&
-      previousSession?.ride_end_time &&
+      data.ride_date === prevRide?.ride_date &&
+      prevRide?.ride_end_time &&
       data.ride_start_time
     ) {
       const normalize = (t: string) => t.padEnd(8, ":00");
-      if (
-        normalize(data.ride_start_time) <
-        normalize(previousSession.ride_end_time)
-      )
+      if (normalize(data.ride_start_time) < normalize(prevRide.ride_end_time))
         newErrors.ride_start_time =
           "Start time must be greater than previous entry (" +
-          previousSession.ride_end_time +
+          prevRide.ride_end_time +
           ")";
     }
     if (
       !editingRide &&
-      previousSession?.end_km &&
-      Number(data.start_km) <= Number(previousSession.end_km)
+      prevRide?.end_km &&
+      Number(data.start_km) <= Number(prevRide.end_km)
     )
       newErrors.start_km =
         "Start KM must be greater than previous entry (" +
-        previousSession.end_km +
+        prevRide.end_km +
         ")";
     if (data.remarks && data.remarks.length > 300)
       newErrors.remarks = "Remarks cannot exceed 300 characters";

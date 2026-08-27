@@ -105,22 +105,29 @@ const FuelPage = () => {
           new Date(`${a.fuel_date}T${a.fuel_time || "00:00"}`).getTime() -
           new Date(`${b.fuel_date}T${b.fuel_time || "00:00"}`).getTime(),
       );
-      const result = sorted.map((entry, i) => {
-        if (i === 0) {
-          return {
-            ...entry,
-            travelled_km: null,
-            mileage_per_litre: null,
-          };
-        }
-        const prev = sorted[i - 1];
-        const travelled = Number(entry.odometer_km) - Number(prev.odometer_km);
+
+      const lastByBike = new Map();
+
+      const result = sorted.map((entry) => {
+        const prev = lastByBike.get(entry.bike_id);
+        const travelled =
+          prev &&
+          Number.isFinite(Number(entry.odometer_km)) &&
+          Number.isFinite(Number(prev.odometer_km))
+            ? Number(entry.odometer_km) - Number(prev.odometer_km)
+            : null;
         const mileage =
-          prev.litres > 0 ? travelled / Number(entry.litres) : null;
+          prev &&
+          Number(entry.litres) > 0 &&
+          travelled !== null &&
+          travelled > 0
+            ? travelled / Number(entry.litres)
+            : null;
+        lastByBike.set(entry.bike_id, entry);
         return {
           ...entry,
           bike: bikesData.find((b) => b.id === entry.bike_id) || null,
-          travelled_km: travelled > 0 ? travelled : null,
+          travelled_km: travelled !== null && travelled > 0 ? travelled : null,
           mileage_per_litre: mileage && mileage > 0 ? mileage : null,
         };
       });
@@ -159,11 +166,15 @@ const FuelPage = () => {
     if (Number(data.odometer_km) <= 0) err.odometer_km = "KM must be > 0";
     if (Number(data.odometer_km) > 999999)
       err.odometer_km = "KM seems too high";
+    if (!data.bike_id) err.bike_id = "Bike is required";
     const currentIndex = fuelEntries.findIndex((s) => s.id === editingFuel?.id);
     const previousSession =
-      currentIndex >= 0 ? fuelEntries[currentIndex + 1] : fuelEntries[0];
+      currentIndex >= 0
+        ? fuelEntries
+            .slice(currentIndex + 1)
+            .find((s) => s.bike_id === data.bike_id)
+        : fuelEntries.find((s) => s.bike_id === data.bike_id);
     if (
-      data.bike_id === previousSession?.bike_id &&
       previousSession?.odometer_km &&
       Number(data.odometer_km) <= Number(previousSession.odometer_km)
     )
@@ -171,7 +182,6 @@ const FuelPage = () => {
         "KM must be greater than previous entry (" +
         previousSession.odometer_km +
         " KM)";
-    if (!data.bike_id) err.bike_id = "Bike is required";
     setErrors(err);
     return !Object.values(err).some(Boolean);
   };

@@ -179,6 +179,7 @@ const GenericFormModal = <T extends object>({
                       onChange={(value) =>
                         updateField(field.key as keyof T, value as T[keyof T])
                       }
+                      error={error}
                     />
                   </div>
                 );
